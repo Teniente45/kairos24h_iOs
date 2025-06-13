@@ -6,6 +6,36 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		C81E52902DFAFEDA00CEB7A5 /* PantallaFuncional.swift in Resources */ = {isa = PBXBuildFile; fileRef = C81E527C2DFAFEDA00CEB7A5 /* PantallaFuncional.swift */; };
+		C81E52912DFAFEDA00CEB7A5 /* Fichar.swift in Resources */ = {isa = PBXBuildFile; fileRef = C81E527B2DFAFEDA00CEB7A5 /* Fichar.swift */; };
+		C81E52922DFAFEDA00CEB7A5 /* ManejoDeSesion.swift in Resources */ = {isa = PBXBuildFile; fileRef = C81E52812DFAFEDA00CEB7A5 /* ManejoDeSesion.swift */; };
+		C81E52932DFAFEDA00CEB7A5 /* GPS.swift in Resources */ = {isa = PBXBuildFile; fileRef = C81E52802DFAFEDA00CEB7A5 /* GPS.swift */; };
+		C81E52942DFAFEDA00CEB7A5 /* PRINT.swift in Resources */ = {isa = PBXBuildFile; fileRef = C81E52722DFAFEDA00CEB7A5 /* PRINT.swift */; };
+		C81E52952DFAFEDA00CEB7A5 /* paginaLogin.swift in Resources */ = {isa = PBXBuildFile; fileRef = C81E527E2DFAFEDA00CEB7A5 /* paginaLogin.swift */; };
+		C81E52962DFAFEDA00CEB7A5 /* SeguridadUtils.swift in Resources */ = {isa = PBXBuildFile; fileRef = C81E52822DFAFEDA00CEB7A5 /* SeguridadUtils.swift */; };
+		C81E52972DFAFEDA00CEB7A5 /* AuthManager.swift in Resources */ = {isa = PBXBuildFile; fileRef = C81E527F2DFAFEDA00CEB7A5 /* AuthManager.swift */; };
+		C81E52982DFAFEDA00CEB7A5 /* URLs.swift in Resources */ = {isa = PBXBuildFile; fileRef = C81E52792DFAFEDA00CEB7A5 /* URLs.swift */; };
+		C81E52A02DFAFEDA00CEB7A5 /* PantallaFuncional.swift in Resources */ = {isa = PBXBuildFile; fileRef = C81E527C2DFAFEDA00CEB7A5 /* PantallaFuncional.swift */; };
+		C81E52A12DFAFEDA00CEB7A5 /* Fichar.swift in Resources */ = {isa = PBXBuildFile; fileRef = C81E527B2DFAFEDA00CEB7A5 /* Fichar.swift */; };
+		C81E52A22DFAFEDA00CEB7A5 /* ManejoDeSesion.swift in Resources */ = {isa = PBXBuildFile; fileRef = C81E52812DFAFEDA00CEB7A5 /* ManejoDeSesion.swift */; };
+		C81E52A32DFAFEDA00CEB7A5 /* GPS.swift in Resources */ = {isa = PBXBuildFile; fileRef = C81E52802DFAFEDA00CEB7A5 /* GPS.swift */; };
+		C81E52A42DFAFEDA00CEB7A5 /* PRINT.swift in Resources */ = {isa = PBXBuildFile; fileRef = C81E52722DFAFEDA00CEB7A5 /* PRINT.swift */; };
+		C81E52A52DFAFEDA00CEB7A5 /* paginaLogin.swift in Resources */ = {isa = PBXBuildFile; fileRef = C81E527E2DFAFEDA00CEB7A5 /* paginaLogin.swift */; };
+		C81E52A62DFAFEDA00CEB7A5 /* SeguridadUtils.swift in Resources */ = {isa = PBXBuildFile; fileRef = C81E52822DFAFEDA00CEB7A5 /* SeguridadUtils.swift */; };
+		C81E52A72DFAFEDA00CEB7A5 /* AuthManager.swift in Resources */ = {isa = PBXBuildFile; fileRef = C81E527F2DFAFEDA00CEB7A5 /* AuthManager.swift */; };
+		C81E52A82DFAFEDA00CEB7A5 /* URLs.swift in Resources */ = {isa = PBXBuildFile; fileRef = C81E52792DFAFEDA00CEB7A5 /* URLs.swift */; };
+		C81E52B02DFAFEDA00CEB7A5 /* PantallaFuncional.swift in Resources */ = {isa = PBXBuildFile; fileRef = C81E527C2DFAFEDA00CEB7A5 /* PantallaFuncional.swift */; };
+		C81E52B12DFAFEDA00CEB7A5 /* Fichar.swift in Resources */ = {isa = PBXBuildFile; fileRef = C81E527B2DFAFEDA00CEB7A5 /* Fichar.swift */; };
+		C81E52B22DFAFEDA00CEB7A5 /* ManejoDeSesion.swift in Resources */ = {isa = PBXBuildFile; fileRef = C81E52812DFAFEDA00CEB7A5 /* ManejoDeSesion.swift */; };
+		C81E52B32DFAFEDA00CEB7A5 /* GPS.swift in Resources */ = {isa = PBXBuildFile; fileRef = C81E52802DFAFEDA00CEB7A5 /* GPS.swift */; };
+		C81E52B42DFAFEDA00CEB7A5 /* PRINT.swift in Resources */ = {isa = PBXBuildFile; fileRef = C81E52722DFAFEDA00CEB7A5 /* PRINT.swift */; };
+		C81E52B52DFAFEDA00CEB7A5 /* paginaLogin.swift in Resources */ = {isa = PBXBuildFile; fileRef = C81E527E2DFAFEDA00CEB7A5 /* paginaLogin.swift */; };
+		C81E52B62DFAFEDA00CEB7A5 /* SeguridadUtils.swift in Resources */ = {isa = PBXBuildFile; fileRef = C81E52822DFAFEDA00CEB7A5 /* SeguridadUtils.swift */; };
+		C81E52B72DFAFEDA00CEB7A5 /* AuthManager.swift in Resources */ = {isa = PBXBuildFile; fileRef = C81E527F2DFAFEDA00CEB7A5 /* AuthManager.swift */; };
+		C81E52B82DFAFEDA00CEB7A5 /* URLs.swift in Resources */ = {isa = PBXBuildFile; fileRef = C81E52792DFAFEDA00CEB7A5 /* URLs.swift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		C81E52532DFAFAAB00CEB7A5 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,6 +57,15 @@
 		C81E52412DFAFAA900CEB7A5 /* kairos24h.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = kairos24h.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C81E52522DFAFAAB00CEB7A5 /* kairos24hTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = kairos24hTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C81E525C2DFAFAAB00CEB7A5 /* kairos24hUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = kairos24hUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		C81E52722DFAFEDA00CEB7A5 /* PRINT.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PRINT.swift; sourceTree = "<group>"; };
+		C81E52792DFAFEDA00CEB7A5 /* URLs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLs.swift; sourceTree = "<group>"; };
+		C81E527B2DFAFEDA00CEB7A5 /* Fichar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Fichar.swift; sourceTree = "<group>"; };
+		C81E527C2DFAFEDA00CEB7A5 /* PantallaFuncional.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PantallaFuncional.swift; sourceTree = "<group>"; };
+		C81E527E2DFAFEDA00CEB7A5 /* paginaLogin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = paginaLogin.swift; sourceTree = "<group>"; };
+		C81E527F2DFAFEDA00CEB7A5 /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
+		C81E52802DFAFEDA00CEB7A5 /* GPS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GPS.swift; sourceTree = "<group>"; };
+		C81E52812DFAFEDA00CEB7A5 /* ManejoDeSesion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManejoDeSesion.swift; sourceTree = "<group>"; };
+		C81E52822DFAFEDA00CEB7A5 /* SeguridadUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeguridadUtils.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -88,6 +127,11 @@
 		C81E52382DFAFAA900CEB7A5 = {
 			isa = PBXGroup;
 			children = (
+				C81E52732DFAFEDA00CEB7A5 /* Console */,
+				C81E527A2DFAFEDA00CEB7A5 /* enlaces_internos */,
+				C81E527D2DFAFEDA00CEB7A5 /* movil */,
+				C81E527E2DFAFEDA00CEB7A5 /* paginaLogin.swift */,
+				C81E52832DFAFEDA00CEB7A5 /* sesionesYSeguridad */,
 				C81E52432DFAFAA900CEB7A5 /* kairos24h */,
 				C81E52552DFAFAAB00CEB7A5 /* kairos24hTests */,
 				C81E525F2DFAFAAB00CEB7A5 /* kairos24hUITests */,
@@ -103,6 +147,42 @@
 				C81E525C2DFAFAAB00CEB7A5 /* kairos24hUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		C81E52732DFAFEDA00CEB7A5 /* Console */ = {
+			isa = PBXGroup;
+			children = (
+				C81E52722DFAFEDA00CEB7A5 /* PRINT.swift */,
+			);
+			path = Console;
+			sourceTree = "<group>";
+		};
+		C81E527A2DFAFEDA00CEB7A5 /* enlaces_internos */ = {
+			isa = PBXGroup;
+			children = (
+				C81E52792DFAFEDA00CEB7A5 /* URLs.swift */,
+			);
+			path = enlaces_internos;
+			sourceTree = "<group>";
+		};
+		C81E527D2DFAFEDA00CEB7A5 /* movil */ = {
+			isa = PBXGroup;
+			children = (
+				C81E527B2DFAFEDA00CEB7A5 /* Fichar.swift */,
+				C81E527C2DFAFEDA00CEB7A5 /* PantallaFuncional.swift */,
+			);
+			path = movil;
+			sourceTree = "<group>";
+		};
+		C81E52832DFAFEDA00CEB7A5 /* sesionesYSeguridad */ = {
+			isa = PBXGroup;
+			children = (
+				C81E527F2DFAFEDA00CEB7A5 /* AuthManager.swift */,
+				C81E52802DFAFEDA00CEB7A5 /* GPS.swift */,
+				C81E52812DFAFEDA00CEB7A5 /* ManejoDeSesion.swift */,
+				C81E52822DFAFEDA00CEB7A5 /* SeguridadUtils.swift */,
+			);
+			path = sesionesYSeguridad;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -225,6 +305,15 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C81E52902DFAFEDA00CEB7A5 /* PantallaFuncional.swift in Resources */,
+				C81E52912DFAFEDA00CEB7A5 /* Fichar.swift in Resources */,
+				C81E52922DFAFEDA00CEB7A5 /* ManejoDeSesion.swift in Resources */,
+				C81E52932DFAFEDA00CEB7A5 /* GPS.swift in Resources */,
+				C81E52942DFAFEDA00CEB7A5 /* PRINT.swift in Resources */,
+				C81E52952DFAFEDA00CEB7A5 /* paginaLogin.swift in Resources */,
+				C81E52962DFAFEDA00CEB7A5 /* SeguridadUtils.swift in Resources */,
+				C81E52972DFAFEDA00CEB7A5 /* AuthManager.swift in Resources */,
+				C81E52982DFAFEDA00CEB7A5 /* URLs.swift in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -232,6 +321,15 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C81E52B02DFAFEDA00CEB7A5 /* PantallaFuncional.swift in Resources */,
+				C81E52B12DFAFEDA00CEB7A5 /* Fichar.swift in Resources */,
+				C81E52B22DFAFEDA00CEB7A5 /* ManejoDeSesion.swift in Resources */,
+				C81E52B32DFAFEDA00CEB7A5 /* GPS.swift in Resources */,
+				C81E52B42DFAFEDA00CEB7A5 /* PRINT.swift in Resources */,
+				C81E52B52DFAFEDA00CEB7A5 /* paginaLogin.swift in Resources */,
+				C81E52B62DFAFEDA00CEB7A5 /* SeguridadUtils.swift in Resources */,
+				C81E52B72DFAFEDA00CEB7A5 /* AuthManager.swift in Resources */,
+				C81E52B82DFAFEDA00CEB7A5 /* URLs.swift in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -239,6 +337,15 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C81E52A02DFAFEDA00CEB7A5 /* PantallaFuncional.swift in Resources */,
+				C81E52A12DFAFEDA00CEB7A5 /* Fichar.swift in Resources */,
+				C81E52A22DFAFEDA00CEB7A5 /* ManejoDeSesion.swift in Resources */,
+				C81E52A32DFAFEDA00CEB7A5 /* GPS.swift in Resources */,
+				C81E52A42DFAFEDA00CEB7A5 /* PRINT.swift in Resources */,
+				C81E52A52DFAFEDA00CEB7A5 /* paginaLogin.swift in Resources */,
+				C81E52A62DFAFEDA00CEB7A5 /* SeguridadUtils.swift in Resources */,
+				C81E52A72DFAFEDA00CEB7A5 /* AuthManager.swift in Resources */,
+				C81E52A82DFAFEDA00CEB7A5 /* URLs.swift in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -287,6 +394,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_ENTITLEMENTS = kairos24h/kairos24h.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -327,6 +435,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_ENTITLEMENTS = kairos24h/kairos24h.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
