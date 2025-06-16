@@ -1,7 +1,14 @@
+//
+//  paginaLogin.swift
+//  kairos24h
+//
+//  Created by Juan López Marín on 13/6/25.
+//
+
 import UIKit
 import CoreLocation
 
-class LoginViewController: UIViewController, CLLocationManagerDelegate {
+class paginaLogin: UIViewController, CLLocationManagerDelegate {
 
     let locationManager = CLLocationManager()
     var isLocationGranted = false
@@ -25,11 +32,7 @@ class LoginViewController: UIViewController, CLLocationManagerDelegate {
            let cTipEmp = UserDefaults.standard.string(forKey: "cTipEmp")?.uppercased(),
            !storedUser.isEmpty, !storedPassword.isEmpty {
 
-            if cTipEmp == "TABLET" {
-                navigateToTabletMain() // Se puede eliminar si ya no se usará tablet
-            } else {
-                navigateToFichar(usuario: storedUser, password: storedPassword)
-            }
+            navigateToFichar(usuario: storedUser, password: storedPassword)
         }
     }
 
@@ -104,19 +107,15 @@ class LoginViewController: UIViewController, CLLocationManagerDelegate {
     func authenticateUser(usuario: String, password: String) {
         let isValid = (usuario == "demo" && password == "1234")
         let xEmpleado = "123"
-        let cTipEmp = "APK" // TODO: eliminar lógica de TABLET si no se usa
+        let cTipCppEmp = "APK"
 
         if isValid {
             UserDefaults.standard.set(usuario, forKey: "usuario")
             UserDefaults.standard.set(password, forKey: "password")
             UserDefaults.standard.set(xEmpleado, forKey: "xEmpleado")
-            UserDefaults.standard.set(cTipEmp, forKey: "cTipEmp")
+            UserDefaults.standard.set(cTipCppEmp, forKey: "cTipCppEmp")
 
-            if cTipEmp.uppercased() == "TABLET" {
-                navigateToTabletMain()
-            } else {
-                navigateToFichar(usuario: usuario, password: password)
-            }
+            navigateToFichar(usuario: usuario, password: password)
         } else {
             showAlert("Usuario o contraseña incorrectos")
         }
@@ -124,14 +123,8 @@ class LoginViewController: UIViewController, CLLocationManagerDelegate {
 
     func navigateToFichar(usuario: String, password: String) {
         let ficharVC = FicharViewController()
-        ficharVC.usuario = usuario
-        ficharVC.password = password
+        ficharVC.setCredenciales(usuario: usuario, password: password)
         navigationController?.pushViewController(ficharVC, animated: true)
-    }
-
-    func navigateToTabletMain() {
-        let tabletVC = TabletMainViewController()
-        navigationController?.pushViewController(tabletVC, animated: true)
     }
 
     @objc func openForgotPassword() {

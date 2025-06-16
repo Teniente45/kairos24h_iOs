@@ -7,15 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		C81E52902DFAFEDA00CEB7A5 /* PantallaFuncional.swift in Resources */ = {isa = PBXBuildFile; fileRef = C81E527C2DFAFEDA00CEB7A5 /* PantallaFuncional.swift */; };
-		C81E52912DFAFEDA00CEB7A5 /* Fichar.swift in Resources */ = {isa = PBXBuildFile; fileRef = C81E527B2DFAFEDA00CEB7A5 /* Fichar.swift */; };
-		C81E52922DFAFEDA00CEB7A5 /* ManejoDeSesion.swift in Resources */ = {isa = PBXBuildFile; fileRef = C81E52812DFAFEDA00CEB7A5 /* ManejoDeSesion.swift */; };
-		C81E52932DFAFEDA00CEB7A5 /* GPS.swift in Resources */ = {isa = PBXBuildFile; fileRef = C81E52802DFAFEDA00CEB7A5 /* GPS.swift */; };
-		C81E52942DFAFEDA00CEB7A5 /* PRINT.swift in Resources */ = {isa = PBXBuildFile; fileRef = C81E52722DFAFEDA00CEB7A5 /* PRINT.swift */; };
-		C81E52952DFAFEDA00CEB7A5 /* paginaLogin.swift in Resources */ = {isa = PBXBuildFile; fileRef = C81E527E2DFAFEDA00CEB7A5 /* paginaLogin.swift */; };
-		C81E52962DFAFEDA00CEB7A5 /* SeguridadUtils.swift in Resources */ = {isa = PBXBuildFile; fileRef = C81E52822DFAFEDA00CEB7A5 /* SeguridadUtils.swift */; };
-		C81E52972DFAFEDA00CEB7A5 /* AuthManager.swift in Resources */ = {isa = PBXBuildFile; fileRef = C81E527F2DFAFEDA00CEB7A5 /* AuthManager.swift */; };
-		C81E52982DFAFEDA00CEB7A5 /* URLs.swift in Resources */ = {isa = PBXBuildFile; fileRef = C81E52792DFAFEDA00CEB7A5 /* URLs.swift */; };
+		C80E96DC2DFFF327009B08AC /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C80E96DB2DFFF321009B08AC /* SceneDelegate.swift */; };
+		C80E96DD2DFFF327009B08AC /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C80E96DB2DFFF321009B08AC /* SceneDelegate.swift */; };
+		C80E96DE2E0001B0009B08AC /* paginaLogin.swift in Sources */ = {isa = PBXBuildFile; fileRef = C81E527E2DFAFEDA00CEB7A5 /* paginaLogin.swift */; };
+		C80E96DF2E0001DF009B08AC /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C80E96DB2DFFF321009B08AC /* SceneDelegate.swift */; };
+		C80E96E02E001351009B08AC /* Fichar.swift in Sources */ = {isa = PBXBuildFile; fileRef = C81E527B2DFAFEDA00CEB7A5 /* Fichar.swift */; };
 		C81E52A02DFAFEDA00CEB7A5 /* PantallaFuncional.swift in Resources */ = {isa = PBXBuildFile; fileRef = C81E527C2DFAFEDA00CEB7A5 /* PantallaFuncional.swift */; };
 		C81E52A12DFAFEDA00CEB7A5 /* Fichar.swift in Resources */ = {isa = PBXBuildFile; fileRef = C81E527B2DFAFEDA00CEB7A5 /* Fichar.swift */; };
 		C81E52A22DFAFEDA00CEB7A5 /* ManejoDeSesion.swift in Resources */ = {isa = PBXBuildFile; fileRef = C81E52812DFAFEDA00CEB7A5 /* ManejoDeSesion.swift */; };
@@ -54,6 +50,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		C80E96DB2DFFF321009B08AC /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		C81E52412DFAFAA900CEB7A5 /* kairos24h.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = kairos24h.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C81E52522DFAFAAB00CEB7A5 /* kairos24hTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = kairos24hTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C81E525C2DFAFAAB00CEB7A5 /* kairos24hUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = kairos24hUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -72,6 +69,7 @@
 		C81E52642DFAFAAB00CEB7A5 /* Exceptions for "kairos24h" folder in "kairos24h" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Assets.xcassets,
 				Info.plist,
 			);
 			target = C81E52402DFAFAA900CEB7A5 /* kairos24h */;
@@ -127,6 +125,7 @@
 		C81E52382DFAFAA900CEB7A5 = {
 			isa = PBXGroup;
 			children = (
+				C80E96DB2DFFF321009B08AC /* SceneDelegate.swift */,
 				C81E52732DFAFEDA00CEB7A5 /* Console */,
 				C81E527A2DFAFEDA00CEB7A5 /* enlaces_internos */,
 				C81E527D2DFAFEDA00CEB7A5 /* movil */,
@@ -305,15 +304,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C81E52902DFAFEDA00CEB7A5 /* PantallaFuncional.swift in Resources */,
-				C81E52912DFAFEDA00CEB7A5 /* Fichar.swift in Resources */,
-				C81E52922DFAFEDA00CEB7A5 /* ManejoDeSesion.swift in Resources */,
-				C81E52932DFAFEDA00CEB7A5 /* GPS.swift in Resources */,
-				C81E52942DFAFEDA00CEB7A5 /* PRINT.swift in Resources */,
-				C81E52952DFAFEDA00CEB7A5 /* paginaLogin.swift in Resources */,
-				C81E52962DFAFEDA00CEB7A5 /* SeguridadUtils.swift in Resources */,
-				C81E52972DFAFEDA00CEB7A5 /* AuthManager.swift in Resources */,
-				C81E52982DFAFEDA00CEB7A5 /* URLs.swift in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -356,6 +346,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C80E96E02E001351009B08AC /* Fichar.swift in Sources */,
+				C80E96DF2E0001DF009B08AC /* SceneDelegate.swift in Sources */,
+				C80E96DE2E0001B0009B08AC /* paginaLogin.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -363,6 +356,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C80E96DD2DFFF327009B08AC /* SceneDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -370,6 +364,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C80E96DC2DFFF327009B08AC /* SceneDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -396,6 +391,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_ENTITLEMENTS = kairos24h/kairos24h.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 4NXQ7FZBLS;
@@ -420,6 +416,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "desarrollo-iOs.kairos24h";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
@@ -437,6 +434,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_ENTITLEMENTS = kairos24h/kairos24h.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 4NXQ7FZBLS;
@@ -461,6 +459,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "desarrollo-iOs.kairos24h";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";

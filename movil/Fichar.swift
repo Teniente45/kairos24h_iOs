@@ -1,10 +1,10 @@
 //
-// Copyright (c) 2025 Juan López
-// Todos los derechos reservados.
+//  Fichar.swift
+//  kairos24h
 //
-// Este archivo forma parte de la aplicación Kairos24h.
-// Proyecto académico de desarrollo iOS (Swift UIKit).
+//  Created by Juan López Marín on 13/6/25.
 //
+
 
 import UIKit
 import WebKit
@@ -30,6 +30,12 @@ class FicharViewController: UIViewController, WKNavigationDelegate, WKUIDelegate
     private var lComIP: String = "S"
     private var lBotonesFichajeMovil: String = ""
     private var fichajeAlertTipo: String?
+
+    // Setter público para credenciales
+    func setCredenciales(usuario: String, password: String) {
+        self.storedUser = usuario
+        self.storedPassword = password
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()

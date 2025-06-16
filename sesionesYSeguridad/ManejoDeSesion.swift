@@ -1,3 +1,11 @@
+//
+//  ManejoDeSesion.swift
+//  kairos24h
+//
+//  Created by Juan López Marín on 13/6/25.
+//
+
+
 import Foundation
 import WebKit
 

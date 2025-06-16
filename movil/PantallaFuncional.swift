@@ -1,3 +1,11 @@
+//
+//  PantallaFuncional.swift
+//  kairos24h
+//
+//  Created by Juan López Marín on 13/6/25.
+//
+
+
 // UIViewController principal que representa la pantalla funcional de fichaje
 import UIKit
 
