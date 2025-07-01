@@ -59,11 +59,17 @@ class PantallaFuncionalViewController: UIViewController, UITableViewDataSource, 
     }
 
     private func setupSubviews() {
-        // Logo empresa cliente (Placeholder)
-        let logoCliente = UIImageView(image: UIImage(named: "logo_cliente"))
-        logoCliente.contentMode = .scaleAspectFit
-        logoCliente.heightAnchor.constraint(equalToConstant: 90).isActive = true
-        stackView.addArrangedSubview(logoCliente)
+        // Logo empresa cliente (SwiftUI)
+        if #available(iOS 13.0, *) {
+            let hostingLogoCliente = UIHostingController(rootView: LogoClienteView()
+                .frame(width: 260, height: 130)
+                .padding(.top, -30)
+            )
+            hostingLogoCliente.view.backgroundColor = .clear
+            hostingLogoCliente.view.translatesAutoresizingMaskIntoConstraints = false
+            stackView.addArrangedSubview(hostingLogoCliente.view)
+            hostingLogoCliente.view.heightAnchor.constraint(equalToConstant: 130).isActive = true
+        }
 
         // MiHorario
         stackView.addArrangedSubview(miHorarioView)
@@ -87,11 +93,19 @@ class PantallaFuncionalViewController: UIViewController, UITableViewDataSource, 
         // Alertas diarias
         stackView.addArrangedSubview(alertasDiariasView)
 
-        // Logo empresa desarrolladora (Placeholder)
-        let logoDev = UIImageView(image: UIImage(named: "logo_desarrolladora"))
-        logoDev.contentMode = .scaleAspectFit
-        logoDev.heightAnchor.constraint(equalToConstant: 50).isActive = true
-        stackView.addArrangedSubview(logoDev)
+        // Logo empresa desarrolladora (SwiftUI)
+        if #available(iOS 13.0, *) {
+            let hostingLogoDev = UIHostingController(rootView:
+                Image("logo_desarrolladora")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 200, height: 75)
+            )
+            hostingLogoDev.view.backgroundColor = .clear
+            hostingLogoDev.view.translatesAutoresizingMaskIntoConstraints = false
+            stackView.addArrangedSubview(hostingLogoDev.view)
+            hostingLogoDev.view.heightAnchor.constraint(equalToConstant: 75).isActive = true
+        }
     }
 
     private func setupLayout() {
@@ -309,15 +323,54 @@ struct FichajeVisual {
     let lcumSal: String
 }
 
-@Composable
-fun Logo_empresa_cliente() {
-    Box(
-        modifier = ImagenesMovil.logoBoxModifier,
-        contentAlignment = Alignment.Center
-    ) {
-        ImagenesMovil.LogoClienteRemoto()
+
+// SwiftUI replacement for logoClienteRemoto
+#if canImport(SwiftUI)
+import SwiftUI
+
+struct LogoClienteView: View {
+    private var placeholder = Image("kairos24h")
+
+    private var logoUrl: URL? {
+        guard let tLogo = AuthManager.shared.getUserCredentials().tLogo,
+              !tLogo.isEmpty,
+              tLogo.lowercased() != "null",
+              let url = URL(string: tLogo) else {
+            return nil
+        }
+        return url
+    }
+
+    var body: some View {
+        if let url = logoUrl {
+            AsyncImage(url: url) { phase in
+                switch phase {
+                case .empty:
+                    placeholder
+                        .resizable()
+                        .scaledToFit()
+                case .success(let image):
+                    image
+                        .resizable()
+                        .scaledToFit()
+                case .failure:
+                    placeholder
+                        .resizable()
+                        .scaledToFit()
+                @unknown default:
+                    placeholder
+                        .resizable()
+                        .scaledToFit()
+                }
+            }
+        } else {
+            placeholder
+                .resizable()
+                .scaledToFit()
+        }
     }
 }
+#endif
 
 @Composable
 fun Logo_empresa_desarrolladora() {

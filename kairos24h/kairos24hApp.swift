@@ -1,32 +1,17 @@
 //
-//  kairos24hApp.swift
-//  kairos24h
+//  BeimanFederadosApp.swift
+//  BeimanFederados
 //
-//  Created by Juan López Marín on 12/6/25.
+//  Created by Juan López Marín on 26/6/25.
 //
 
 import SwiftUI
-import SwiftData
 
 @main
-struct kairos24hApp: App {
-    var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            Item.self,
-        ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-
-        do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
-        } catch {
-            fatalError("Could not create ModelContainer: \(error)")
-        }
-    }()
-
+struct kairos24h: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            PaginaPrincipalViewController()
         }
-        .modelContainer(sharedModelContainer)
     }
 }
