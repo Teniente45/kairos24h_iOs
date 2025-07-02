@@ -7,7 +7,8 @@
 
 
 // UIViewController principal que representa la pantalla funcional de fichaje
-import UIKit
+/*
+ import UIKit
 
 class PantallaFuncionalViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
     // MARK: - UI Components
@@ -1314,5 +1315,5 @@ fun MensajeAlerta(
         }
     }
 }
-
+*/
 

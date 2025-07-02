@@ -18,7 +18,7 @@ struct CabeceraUsuarioView: View {
 
             HStack {
                 HStack(spacing: 8) {
-                    Image("cliente32")
+                    Image("icono_usuario")
                         .resizable()
                         .frame(width: 24, height: 24)
 
@@ -91,40 +91,15 @@ struct SolapaWebView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color.white)
             .zIndex(2)
+            
+            ZStack {
+                Color(red: 0xE2 / 255.0, green: 0xE4 / 255.0, blue: 0xE5 / 255.0)
+            }
+            .frame(height: 30)
         }
         .navigationDestination(isPresented: $navegar) {
             PaginaPrincipalViewController()
         }
     }
 
-    private func columnaIconos(_ iconos: [(String, String, String)]) -> some View {
-        VStack(spacing: 28) {
-            ForEach(iconos, id: \.0) { item in
-                botonNavegador(label: item.0, imageName: item.1, urlString: item.2)
-            }
-        }
-    }
-
-    private func botonNavegador(label: String, imageName: String, urlString: String) -> some View {
-        Button(action: {
-            if let url = URL(string: urlString) {
-                webView.load(URLRequest(url: url))
-                onClose()
-            }
-        }) {
-            VStack(spacing: 8) {
-                Image(imageName)
-                    .resizable()
-                    .frame(width: 86, height: 86)
-                Text(label)
-                    .font(.system(size: 17, weight: .medium))
-                    .multilineTextAlignment(.center)
-                    .foregroundColor(Color(red: 6/255, green: 82/255, blue: 161/255))
-                    .frame(width: 96, height: 66)
-                    .lineLimit(3)
-                    .fixedSize(horizontal: false, vertical: false)
-            }
-            .frame(width: 100, height: 130)
-        }
-    }
 }

@@ -38,6 +38,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Console/PRINT.swift,
+				movil/PantallaFuncional.swift,
 			);
 			target = C81E52402DFAFAA900CEB7A5 /* kairos24h */;
 		};
@@ -72,7 +73,6 @@
 			membershipExceptions = (
 				Console/PRINT.swift,
 				enlaces_internos/URLs.swift,
-				movil/PantallaFuncional.swift,
 				sesionesYSeguridad/GPS.swift,
 			);
 		};
@@ -82,7 +82,6 @@
 			membershipExceptions = (
 				Console/PRINT.swift,
 				enlaces_internos/URLs.swift,
-				movil/PantallaFuncional.swift,
 				sesionesYSeguridad/GPS.swift,
 			);
 		};
