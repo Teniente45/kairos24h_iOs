@@ -1,3 +1,11 @@
+//
+//  URLs.swift
+//  Kairos24h
+//
+//  Created by Juan López on 2025.
+//  Todos los derechos reservados.
+//
+
 import SwiftUI
 import Reachability
 

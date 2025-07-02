@@ -38,7 +38,6 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Console/PRINT.swift,
-				Info.plist,
 			);
 			target = C81E52402DFAFAA900CEB7A5 /* kairos24h */;
 		};

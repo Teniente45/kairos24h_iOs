@@ -3,164 +3,130 @@
 //  Kairos24h
 //
 //  Created by Juan López on 2025.
-//  Copyright © 2025 Juan López. All rights reserved.
+//  Todos los derechos reservados.
+//
+//  Este archivo forma parte de la aplicación Kairos24h (iOS).
 //
 
-import UIKit
+import SwiftUI
 
-class ImagenesMovil {
-    static let logoCliente = UIImage(named: "kairos24h")
-    static let logoDesarrolladora = UIImage(named: "logo_i3data")
+// MARK: - ImagenesMovil: Acceso centralizado a logos
+// Esta estructura agrupa los logos utilizados en la app, tanto locales como remotos
 
-    static func getLogoClienteXPrograma() -> String? {
-        let tLogo = AuthManager.shared.getUserCredentials().tLogo
-        if !tLogo.isEmpty && tLogo.lowercased() != "null" {
-            return tLogo
-        }
-        return nil
+struct ImagenesMovil {
+
+    // Logo principal del cliente mostrado en el login
+    static let logoCliente: Image? = {
+        return Image("kairos24h")
+    }()
+
+    static let logoDesarrolladora: Image? = {
+        guard let uiImage = UIImage(named: "logo_desarrolladora") else { return nil }
+        return Image(uiImage: uiImage)
+    }()
+
+    // Estilos de tamaño para los logos
+    struct LogoEstilos {
+        // Tamaño del logo del cliente
+        static let logoSize: CGSize = CGSize(width: 280, height: 280)
+        // Tamaño del logo de la desarrolladora
+        static let logoDesarrolladoraSize: CGSize = CGSize(width: 200, height: 75)
     }
 
-    static func logoClienteRemoto(view: UIImageView) {
-        if let logoUrlString = getLogoClienteXPrograma(), let url = URL(string: logoUrlString) {
-            // Load image asynchronously from URL with placeholder
-            // Using URLSession for simplicity; in production consider using libraries like SDWebImage or Kingfisher
-            let placeholder = UIImage(named: "kairos24h")
-            view.image = placeholder
-            URLSession.shared.dataTask(with: url) { data, response, error in
-                if let data = data, let image = UIImage(data: data) {
+    // Carga remota del logo del cliente (si viene del backend)
+    static func getLogoClienteURL() -> URL? {
+        let tLogo = AuthManager.shared.getUserCredentials().tLogo
+        guard !tLogo.isEmpty, tLogo != "null" else {
+            return nil
+        }
+        return URL(string: tLogo)
+    }
+
+    // Método para cargar el logo del cliente desde la red o usar el logo local como fallback
+    static func cargarLogoCliente(completion: @escaping (Image?) -> Void) {
+        if let url = getLogoClienteURL() {
+            // Si hay URL válida, se descarga la imagen
+            URLSession.shared.dataTask(with: url) { data, _, _ in
+                guard let data = data, let uiImage = UIImage(data: data) else {
+                    // Si hay error al descargar, usa el logo local
                     DispatchQueue.main.async {
-                        view.image = image
+                        completion(logoCliente)
                     }
-                } else {
-                    DispatchQueue.main.async {
-                        view.image = placeholder
-                    }
+                    return
+                }
+                DispatchQueue.main.async {
+                    completion(Image(uiImage: uiImage))
                 }
             }.resume()
         } else {
-            view.image = UIImage(named: "kairos24h")
+            // Si no hay URL, usa directamente el logo local
+            completion(logoCliente)
         }
     }
 }
 
+
+// MARK: - WebViewURL
+// Define URLs base y de login para la WebView
+
 struct WebViewURL {
-    static let host = "https://beimancpp.tucitamedica.es"
-    static let entryPoint = "/index.php"
-    static let urlUsada = host + entryPoint
-
-    static let actionLogin = "r=wsExterno/loginExterno"
-
-    static let loginAPK = urlUsada + "?" + actionLogin
+    static let host = "https://democontrolhorario.kairos24h.es" // Dominio base de la app
+    static let entryPoint = "/index.php" // Punto de entrada PHP
+    static let urlUsada = "\(host)\(entryPoint)" // URL combinada
+    static let actionLogin = "r=wsExterno/loginExterno" // Acción de login por URL
+    static let loginAPK = "\(urlUsada)?\(actionLogin)" // URL completa de login
+    static let LOGINAPK = loginAPK // Alias redundante
 }
 
-struct BuildURLmovil {
-    private static func getHost() -> String {
+
+// MARK: - BuildURLMovil
+// Construcción dinámica de URLs según el usuario autenticado
+
+struct BuildURLMovil {
+
+    // Devuelve el host definido por el usuario o el default si no hay ninguno
+    static func getHost() -> String {
         let tUrlCPP = AuthManager.shared.getUserCredentials().tUrlCPP
-        let hostFinal: String
-        if !tUrlCPP.isEmpty && tUrlCPP.lowercased() != "null" {
-            hostFinal = tUrlCPP
-        } else {
-            hostFinal = WebViewURL.host
-        }
-        print("BuildURLmovil - Host seleccionado: \(hostFinal)")
+        let hostFinal = (!tUrlCPP.isEmpty && tUrlCPP != "null") ? tUrlCPP : WebViewURL.host
+        print("Host seleccionado: \(hostFinal)")
         return hostFinal
     }
 
-    private static let entryPoint = "/index.php"
+    static let entryPoint = "/index.php" // Punto de entrada estándar
 
-    private static func getURLUsada() -> String {
+    // Devuelve la URL base usada en toda la app
+    static func getURLUsada() -> String {
         return getHost() + entryPoint + "?"
     }
 
-    private static let actionForgotPass = "r=site/solicitudRestablecerClave"
-    private static let actionLogin = "r=site/index"
-    private static let actionFichaje = "r=explotacion/creaFichaje"
-    private static let actionConsultar = "r=explotacion/consultarExplotacion"
+    // Acciones de distintas pantallas del sistema (algunas aún no están definidas)
+    static let actionForgotPass = "r=site/solicitudRestablecerClave"
+    static let actionLogin = "r=site/index"
 
-    private static let actionConsultHorario = "r=wsExterno/consultarHorarioExterno"
-    private static let actionConsultFicDia = "r=wsExterno/consultarFichajesExterno"
-    private static let actionConsultAlertas = "r=wsExterno/consultarAlertasExterno"
+    // AÑADIR RESTO DE FUNCIONES
 
-    static func getIndex() -> String {
-        return getURLUsada() + actionLogin
-    }
+    // Métodos para obtener URLs completas con las acciones definidas
+    static func getIndex() -> String { getURLUsada() + actionLogin }
+    static func getForgotPassword() -> String { getURLUsada() + actionForgotPass }
 
-    static func getForgotPassword() -> String {
-        return getURLUsada() + actionForgotPass
-    }
 
-    static func getFichaje() -> String {
-        let url = getURLUsada() + actionConsultar + "&cTipExp=FICHAJE"
-        print("URL_Fichaje - URL generada: \(url)")
-        return url
-    }
+    // Parámetros estáticos adicionales para las URLs
+    static let xGrupo = ""
+    static let cKiosko = ""
+    static let cFicOri = "APP"
 
-    static func getIncidencia() -> String {
-        let url = getURLUsada() + actionConsultar + "&cTipExp=INCIDENCIA&cOpcionVisual=INCBAN"
-        print("URL_Incidencia - URL generada: \(url)")
-        return url
-    }
-
-    static func getHorarios() -> String {
-        let url = getURLUsada() + actionConsultar + "&cTipExp=HORARIO&cModoVisual=HORMEN"
-        print("URL_Horarios - URL generada: \(url)")
-        return url
-    }
-
-    static func getSolicitudes() -> String {
-        let url = getURLUsada() + actionConsultar + "&cTipExp=SOLICITUD"
-        print("URL_Solicitudes - URL generada: \(url)")
-        return url
-    }
-
-    private static let xGrupo = ""
-    private static let cKiosko = ""
-    private static let cFicOri = "APP"
-
-    private static func getStaticParams() -> String {
+    // Genera la cadena de parámetros adicionales a incluir en las URLs
+    static func getStaticParams() -> String {
         let creds = AuthManager.shared.getUserCredentials()
         let xEntidad = creds.xEntidad ?? ""
         let xEmpleado = creds.xEmpleado ?? ""
-        return "&xGrupo=\(xGrupo)" +
-               "&xEntidad=\(xEntidad)" +
-               "&xEmpleado=\(xEmpleado)" +
-               "&cKiosko=\(cKiosko)" +
-               "&cFicOri=\(cFicOri)"
-    }
-
-    static func getCrearFichaje() -> String {
-        return getURLUsada() + actionFichaje + getStaticParams()
-    }
-
-    static func getMostrarHorarios() -> String {
-        return getURLUsada() + actionConsultHorario + getStaticParams()
-    }
-
-    static func getMostrarFichajes() -> String {
-        return getURLUsada() + actionConsultFicDia + getStaticParams()
-    }
-
-    static func getMostrarAlertas() -> String {
-        return getURLUsada() + actionConsultAlertas + getStaticParams()
+        return "&xGrupo=\(xGrupo)&xEntidad=\(xEntidad)&xEmpleado=\(xEmpleado)&cKiosko=\(cKiosko)&cFicOri=\(cFicOri)"
     }
 }
 
-
-// Dummy AuthManager singleton for context
-// In your project, this should be replaced by your actual AuthManager implementation
-class AuthManager {
-    static let shared = AuthManager()
-    private init() {}
-
-    func getUserCredentials() -> UserCredentials {
-        // Return mock or actual user credentials
-        return UserCredentials()
+// Extensión para comprobar si un String? es nulo o vacío
+extension Optional where Wrapped == String {
+    var isNilOrEmpty: Bool {
+        return self?.isEmpty ?? true
     }
-}
-
-struct UserCredentials {
-    var tLogo: String = ""
-    var tUrlCPP: String = ""
-    var xEntidad: String? = ""
-    var xEmpleado: String? = ""
 }
