@@ -1,15 +1,17 @@
 {
   "images" : [
     {
-      "filename" : "cliente32.png",
+      "filename" : "cliente32@1x.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
+      "filename" : "cliente32@2x.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
+      "filename" : "cliente32@3x.png",
       "idiom" : "universal",
       "scale" : "3x"
     }

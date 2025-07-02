@@ -1,17 +1,17 @@
 {
   "images" : [
     {
-      "filename" : "hacia_delante@1x.png",
+      "filename" : "fichajeentrada32@1x.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "hacia_delante@2x.png",
+      "filename" : "fichajeentrada32@2x.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
-      "filename" : "hacia_delante@3x.png",
+      "filename" : "fichajeentrada32@3x.png",
       "idiom" : "universal",
       "scale" : "3x"
     }

@@ -38,13 +38,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Console/PRINT.swift,
-				enlaces_internos/URLs.swift,
 				Info.plist,
-				movil/PantallaFuncional.swift,
-				sesionesYSeguridad/AuthManager.swift,
-				sesionesYSeguridad/GPS.swift,
-				sesionesYSeguridad/ManejoDeSesion.swift,
-				sesionesYSeguridad/SeguridadUtils.swift,
 			);
 			target = C81E52402DFAFAA900CEB7A5 /* kairos24h */;
 		};
@@ -79,7 +73,6 @@
 			membershipExceptions = (
 				Console/PRINT.swift,
 				enlaces_internos/URLs.swift,
-				movil/Fichar.swift,
 				movil/PantallaFuncional.swift,
 				sesionesYSeguridad/GPS.swift,
 			);
@@ -90,7 +83,6 @@
 			membershipExceptions = (
 				Console/PRINT.swift,
 				enlaces_internos/URLs.swift,
-				movil/Fichar.swift,
 				movil/PantallaFuncional.swift,
 				sesionesYSeguridad/GPS.swift,
 			);

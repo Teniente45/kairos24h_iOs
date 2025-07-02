@@ -1,15 +1,17 @@
 {
   "images" : [
     {
-      "filename" : "logo_i3data.png",
+      "filename" : "logo_i3data@1x.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
+      "filename" : "logo_i3data@2x.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
+      "filename" : "logo_i3data@3x.png",
       "idiom" : "universal",
       "scale" : "3x"
     }
