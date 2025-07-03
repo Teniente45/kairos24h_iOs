@@ -15,6 +15,7 @@ struct CabeceraUsuarioView: View {
     var body: some View {
         ZStack {
             Color(red: 0xE2 / 255.0, green: 0xE4 / 255.0, blue: 0xE5 / 255.0)
+                .ignoresSafeArea(.container, edges: .top)
 
             HStack {
                 HStack(spacing: 8) {
@@ -97,6 +98,13 @@ struct SolapaWebView: View {
             }
             .frame(height: 30)
         }
+        .background(
+            VStack {
+                Spacer()
+                Color(red: 0xE2 / 255.0, green: 0xE4 / 255.0, blue: 0xE5 / 255.0)
+                    .frame(height: UIApplication.shared.windows.first?.safeAreaInsets.bottom ?? 0)
+            }
+        )
         .navigationDestination(isPresented: $navegar) {
             PaginaPrincipalViewController()
         }
