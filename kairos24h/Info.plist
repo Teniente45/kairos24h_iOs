@@ -13,8 +13,6 @@
     <string>1.0</string>
     <key>UILaunchStoryboardName</key>
     <string>LaunchScreen</string>
-    <key>UIMainStoryboardFile</key>
-    <string>Main</string>
 
     <!-- 🚨 Permisos de localización -->
     <key>NSLocationWhenInUseUsageDescription</key>
@@ -27,9 +25,7 @@
         <true/>
     </dict>
 
-    <!-- (Opcional) Uso de red Wi-Fi para ubicación -->
     <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
     <string>Usamos tu ubicación incluso cuando la app está en segundo plano para mejorar la precisión del fichaje.</string>
-
 </dict>
 </plist>

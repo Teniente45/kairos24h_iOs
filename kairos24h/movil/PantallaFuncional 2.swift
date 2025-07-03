@@ -39,6 +39,7 @@ struct CabeceraUsuarioView: View {
                 }
             }
             .padding(.horizontal, 12)
+            .padding(.bottom, 5)
             .frame(height: 30)
         }
         .frame(height: 30)
@@ -63,6 +64,16 @@ struct SolapaWebView: View {
     @State private var showLogoutDialog = false
     @State private var navegar = false
     let cUsuario = AuthManager.shared.getUserCredentials().usuario
+    
+    // Con esto puedo cambiar el tamaño de los iconos de la barra de navegación
+    let iconoBarraInferiorAltura: CGFloat = 36
+    
+    private func BarraInferiorIcono(nombre: String) -> some View {
+        Image(nombre)
+            .resizable()
+            .aspectRatio(contentMode: .fit)
+            .frame(height: iconoBarraInferiorAltura)
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -95,14 +106,31 @@ struct SolapaWebView: View {
             
             ZStack {
                 Color(red: 0xE2 / 255.0, green: 0xE4 / 255.0, blue: 0xE5 / 255.0)
+
+                HStack(spacing: 0) {
+                    Spacer()
+                    BarraInferiorIcono(nombre: "ic_home32_2")
+                    Spacer()
+                    BarraInferiorIcono(nombre: "ic_fichajes32")
+                    Spacer()
+                    BarraInferiorIcono(nombre: "ic_incidencia32")
+                    Spacer()
+                    BarraInferiorIcono(nombre: "ic_horario32")
+                    Spacer()
+                    BarraInferiorIcono(nombre: "solicitudes32")
+                    Spacer()
+                }
             }
-            .frame(height: 30)
+            .frame(height: 50)
         }
         .background(
-            VStack {
-                Spacer()
-                Color(red: 0xE2 / 255.0, green: 0xE4 / 255.0, blue: 0xE5 / 255.0)
-                    .frame(height: UIApplication.shared.windows.first?.safeAreaInsets.bottom ?? 0)
+            GeometryReader { geometry in
+                VStack(spacing: 0) {
+                    Spacer()
+                    Color(red: 0xE2 / 255.0, green: 0xE4 / 255.0, blue: 0xE5 / 255.0)
+                        .frame(height: geometry.safeAreaInsets.bottom)
+                }
+                .edgesIgnoringSafeArea(.bottom)
             }
         )
         .navigationDestination(isPresented: $navegar) {
