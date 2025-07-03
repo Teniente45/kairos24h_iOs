@@ -15,5 +15,21 @@
     <string>LaunchScreen</string>
     <key>UIMainStoryboardFile</key>
     <string>Main</string>
+
+    <!-- 🚨 Permisos de localización -->
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>Esta app necesita acceso a tu ubicación para registrar tus fichajes.</string>
+
+    <!-- 🌐 Permitir acceso a internet (ATS) -->
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSAllowsArbitraryLoads</key>
+        <true/>
+    </dict>
+
+    <!-- (Opcional) Uso de red Wi-Fi para ubicación -->
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>Usamos tu ubicación incluso cuando la app está en segundo plano para mejorar la precisión del fichaje.</string>
+
 </dict>
 </plist>
