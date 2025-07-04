@@ -36,4 +36,7 @@ class GPSUtils: NSObject, CLLocationManagerDelegate {
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         print("GPSUtils - Error al obtener ubicación: \(error.localizedDescription)")
     }
+    func obtenerCoordenadas() -> CLLocationCoordinate2D? {
+        return currentLocation?.coordinate
+    }
 }

@@ -102,6 +102,16 @@ struct SolapaWebView: View {
 
                     MiHorarioView()
 
+                    BotonesFichajeView(
+                        webView: webView,
+                        onFichaje: { tipo in
+                            print("✅ Fichaje completado: \(tipo)")
+                        },
+                        onShowAlert: { mensaje in
+                            print("⚠️ Alerta mostrada al usuario: \(mensaje)")
+                        }
+                    )
+
                     if let logoDev = ImagenesMovil.logoDesarrolladora {
                         logoDev
                             .resizable()
@@ -151,7 +161,7 @@ struct SolapaWebView: View {
 
 }
 
-
+// MARK: Funcion que se encarga de mostrar los horarios del usuario logeado
 struct MiHorarioView: View {
     @State private var fechaFormateada: String = "Cargando..."
     @State private var horarioTexto: String = "Cargando horario..."
@@ -268,6 +278,130 @@ struct MiHorarioView: View {
 
         } catch {
             horarioTexto = "Error al obtener horario"
+        }
+    }
+}
+// MARK: Funcion que se encarga de mostrar los horarios del usuario logeado
+
+
+// --- Botones de Fichaje adaptados desde Kotlin ---
+import Combine
+struct BotonesFichajeView: View {
+    let webView: WKWebView?
+    let onFichaje: (String) -> Void
+    let onShowAlert: (String) -> Void
+    @State private var ultimoFichajeTimestamp: TimeInterval = 0
+
+    var body: some View {
+        VStack(spacing: 10) {
+            BotonFichaje(tipo: "ENTRADA")
+            BotonFichaje(tipo: "SALIDA")
+        }
+    }
+
+    @ViewBuilder
+    private func BotonFichaje(tipo: String) -> some View {
+        Button(action: {
+            Task {
+                guard !SeguridadUtils.shared.isUsingVPN() else {
+                    print("🚫 VPN detectada")
+                    onShowAlert("VPN DETECTADA")
+                    return
+                }
+
+                guard SeguridadUtils.shared.isInternetAvailable() else {
+                    print("📡 Sin conexión")
+                    onShowAlert("PROBLEMA INTERNET")
+                    return
+                }
+
+                guard SeguridadUtils.shared.hasLocationPermission() else {
+                    print("📍 Sin permiso de localización")
+                    onShowAlert("PROBLEMA GPS")
+                    return
+                }
+
+                switch SeguridadUtils.shared.detectarUbicacionReal() {
+                case .gpsDesactivado:
+                    print("📍 GPS desactivado")
+                    onShowAlert("PROBLEMA GPS")
+                    return
+                case .ubicacionSimulada:
+                    print("🛰️ Ubicación simulada detectada")
+                    onShowAlert("POSIBLE UBI FALSA")
+                    return
+                case .ok:
+                    break
+                }
+
+                let ahora = Date().timeIntervalSince1970
+                if ahora - ultimoFichajeTimestamp < 5 {
+                    print("⚠️ Doble fichaje prevenido")
+                    return
+                }
+                ultimoFichajeTimestamp = ahora
+
+                print("✅ Fichaje \(tipo) procesado")
+                if let webView = webView {
+                    FichajeManager.shared.fichar(tipo: tipo, webView: webView)
+                }
+                onFichaje(tipo)
+            }
+        }) {
+            HStack {
+                Image(tipo == "ENTRADA" ? "fichajeetrada32" : "fichajesalida32")
+                    .resizable()
+                    .frame(width: 40, height: 40)
+                    .padding(.leading, 15)
+
+                Text("Fichaje \(tipo.capitalized)")
+                    .font(.system(size: 25, weight: .bold))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .frame(height: 55)
+            .background(Color(red: 0.46, green: 0.60, blue: 0.71))
+            .cornerRadius(10)
+            .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color(red: 0.055, green: 0.282, blue: 0.475), lineWidth: 2))
+            .padding(.horizontal, 20)
+        }
+        .offset(y: tipo == "ENTRADA" ? -20 : -40)
+    }
+}
+
+struct FichajeManager {
+    static let shared = FichajeManager()
+
+    func fichar(tipo: String, webView: WKWebView) {
+        guard let coord = GPSUtils.shared.obtenerCoordenadas() else {
+            print("❌ Coordenadas no disponibles")
+            return
+        }
+
+        let xEmpleado = AuthManager.shared.getUserCredentials().xEmpleado
+        let cDomFicOri = "APP"
+        let cDomTipFic = tipo
+        let tCoordX = coord.latitude
+        let tCoordY = coord.longitude
+
+        let urlString = BuildURLMovil.getURLFichaje() +
+            "&xEmpleado=\(xEmpleado)" +
+            "&cDomTipFic=\(cDomTipFic)" +
+            "&cDomFicOri=\(cDomFicOri)" +
+            "&tCoordX=\(tCoordX)" +
+            "&tCoordY=\(tCoordY)"
+
+        print("📤 URL generada para fichaje: \(urlString)")
+
+        let jsCode = """
+        window.location.href = '\(urlString)';
+        """
+        webView.evaluateJavaScript(jsCode) { (result, error) in
+            if let error = error {
+                print("❌ Error al ejecutar JavaScript para fichaje: \(error)")
+            } else {
+                print("✅ Fichaje lanzado con éxito desde WebView")
+            }
         }
     }
 }
