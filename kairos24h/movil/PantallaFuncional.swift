@@ -1,377 +1,91 @@
-//
-//  PantallaFuncional.swift
-//  kairos24h
-//
-//  Created by Juan López Marín on 13/6/25.
-//
-
-
-// UIViewController principal que representa la pantalla funcional de fichaje
 /*
- import UIKit
-
-class PantallaFuncionalViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
-    // MARK: - UI Components
-    let scrollView = UIScrollView()
-    let stackView = UIStackView()
-    let botonesFichajeView = BotonesFichajeView()
-    let miHorarioView = MiHorarioView()
-    let recuadroFichajesDiaView = RecuadroFichajesDiaView()
-    let alertasDiariasView = AlertasDiariasView()
-    let fechaPicker = UIDatePicker()
-    let mensajeAlertaQueue = DispatchQueue.main
-    // MARK: - Datos
-    var fichajes: [FichajeVisual] = []
-    var fechaSeleccionada: Date = Date()
-    var mostrarBotonesFichaje: Bool = true
-
-    // MARK: - Ciclo de Vida
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        view.backgroundColor = .white
-        setupScrollAndStack()
-        setupSubviews()
-        setupLayout()
-        setupDatePicker()
-        actualizarListaFichajes()
-    }
-
-    // MARK: - Setup UI
-    private func setupScrollAndStack() {
-        scrollView.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(scrollView)
-        NSLayoutConstraint.activate([
-            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            scrollView.topAnchor.constraint(equalTo: view.topAnchor),
-            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-        ])
-        stackView.axis = .vertical
-        stackView.spacing = 18
-        stackView.translatesAutoresizingMaskIntoConstraints = false
-        scrollView.addSubview(stackView)
-        NSLayoutConstraint.activate([
-            stackView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 16),
-            stackView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor, constant: -16),
-            stackView.topAnchor.constraint(equalTo: scrollView.topAnchor, constant: 24),
-            stackView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor, constant: -16),
-            stackView.widthAnchor.constraint(equalTo: scrollView.widthAnchor, constant: -32)
-        ])
-    }
-
-    private func setupSubviews() {
-        // Logo empresa cliente (SwiftUI)
-        if #available(iOS 13.0, *) {
-            let hostingLogoCliente = UIHostingController(rootView: LogoClienteView()
-                .frame(width: 260, height: 130)
-                .padding(.top, -30)
-            )
-            hostingLogoCliente.view.backgroundColor = .clear
-            hostingLogoCliente.view.translatesAutoresizingMaskIntoConstraints = false
-            stackView.addArrangedSubview(hostingLogoCliente.view)
-            hostingLogoCliente.view.heightAnchor.constraint(equalToConstant: 130).isActive = true
-        }
-
-        // MiHorario
-        stackView.addArrangedSubview(miHorarioView)
-
-        // Botones de fichaje
-        if mostrarBotonesFichaje {
-            botonesFichajeView.delegate = self
-            stackView.addArrangedSubview(botonesFichajeView)
-        }
-
-        // Fecha Picker y recuadro fichajes
-        let fechaRow = UIStackView(arrangedSubviews: [fechaPicker])
-        fechaRow.axis = .horizontal
-        fechaRow.alignment = .center
-        fechaRow.distribution = .fill
-        stackView.addArrangedSubview(fechaRow)
-        recuadroFichajesDiaView.tableView.delegate = self
-        recuadroFichajesDiaView.tableView.dataSource = self
-        stackView.addArrangedSubview(recuadroFichajesDiaView)
-
-        // Alertas diarias
-        stackView.addArrangedSubview(alertasDiariasView)
-
-        // Logo empresa desarrolladora (SwiftUI)
-        if #available(iOS 13.0, *) {
-            let hostingLogoDev = UIHostingController(rootView:
-                Image("logo_desarrolladora")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 200, height: 75)
-            )
-            hostingLogoDev.view.backgroundColor = .clear
-            hostingLogoDev.view.translatesAutoresizingMaskIntoConstraints = false
-            stackView.addArrangedSubview(hostingLogoDev.view)
-            hostingLogoDev.view.heightAnchor.constraint(equalToConstant: 75).isActive = true
-        }
-    }
-
-    private func setupLayout() {
-        // Paddings, colores, etc. ya aplicados en setupScrollAndStack y subviews
-        // Puedes personalizar aquí si necesitas
-    }
-
-    private func setupDatePicker() {
-        fechaPicker.datePickerMode = .date
-        fechaPicker.preferredDatePickerStyle = .compact
-        fechaPicker.tintColor = UIColor(red: 0.46, green: 0.60, blue: 0.71, alpha: 1.0) // #7599B6
-        fechaPicker.addTarget(self, action: #selector(dateChanged), for: .valueChanged)
-        fechaPicker.maximumDate = Date()
-        fechaPicker.date = fechaSeleccionada
-    }
-
-    @objc private func dateChanged() {
-        fechaSeleccionada = fechaPicker.date
-        actualizarListaFichajes()
-    }
-
-    // MARK: - Métodos de Datos (placeholders)
-    func actualizarListaFichajes() {
-        // TODO: Implementar lógica real de carga de fichajes desde servidor
-        // Por ahora, simula algunos datos
-        fichajes = [
-            FichajeVisual(entrada: "08:00", salida: "15:00", lcumEnt: "true", lcumSal: "true"),
-            FichajeVisual(entrada: "16:00", salida: "18:00", lcumEnt: "false", lcumSal: "true")
-        ]
-        mostrarFichajes()
-    }
-
-    func mostrarFichajes() {
-        recuadroFichajesDiaView.setFecha(fecha: fechaSeleccionada)
-        recuadroFichajesDiaView.tableView.reloadData()
-    }
-
-    // MARK: - UITableViewDataSource/Delegate para fichajes día
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return fichajes.count
-    }
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "FichajeCell") ?? UITableViewCell(style: .subtitle, reuseIdentifier: "FichajeCell")
-        let f = fichajes[indexPath.row]
-        cell.textLabel?.text = "\(f.entrada) - \(f.salida)"
-        // Colores según cumplimiento
-        let entradaColor: UIColor = (f.lcumEnt == "true") ? UIColor(red: 0.27, green: 0.61, blue: 0.11, alpha: 1.0) : (f.lcumEnt == "false" ? .red : UIColor(red: 0.46, green: 0.60, blue: 0.71, alpha: 1.0))
-        let salidaColor: UIColor = (f.lcumSal == "true") ? UIColor(red: 0.27, green: 0.61, blue: 0.11, alpha: 1.0) : (f.lcumSal == "false" ? .red : UIColor(red: 0.46, green: 0.60, blue: 0.71, alpha: 1.0))
-        let attr = NSMutableAttributedString(string: "\(f.entrada)", attributes: [.foregroundColor: entradaColor])
-        attr.append(NSAttributedString(string: " - "))
-        attr.append(NSAttributedString(string: f.salida, attributes: [.foregroundColor: salidaColor]))
-        cell.textLabel?.attributedText = attr
-        cell.textLabel?.font = UIFont.systemFont(ofSize: 21, weight: .medium)
-        cell.detailTextLabel?.text = ""
-        cell.selectionStyle = .none
-        return cell
-    }
-}
-
-// MARK: - BotonesFichajeViewDelegate
-extension PantallaFuncionalViewController: BotonesFichajeViewDelegate {
-    func botonFichajePulsado(tipo: String) {
-        // Lógica de fichar, usar AuthManager.shared, GPSUtils.shared, etc.
-        // Si hay éxito:
-        mostrarMensaje(tipo: tipo)
-        actualizarListaFichajes()
-    }
-    func mostrarMensaje(tipo: String) {
-        // Traduce MensajeAlerta a UIAlertController
-        var mensaje = ""
-        switch tipo.uppercased() {
-        case "ENTRADA":
-            mensaje = "Fichaje de Entrada realizado correctamente"
-        case "SALIDA":
-            mensaje = "Fichaje de Salida realizado correctamente"
-        case "PROBLEMA GPS":
-            mensaje = "No se detecta la geolocalización gps. Por favor, active la geolocalización gps para poder fichar y vuelvalo a intentar en unos segundos."
-        case "PROBLEMA INTERNET":
-            mensaje = "El dispositivo no está conectado a la red. Revise su conexión a Internet."
-        case "POSIBLE UBI FALSA":
-            mensaje = "Se detectó una posible ubicación falsa. Reinicie su geolocalización gps y vuelva a intentarlo en unos minutos"
-        case "VPN DETECTADA":
-            mensaje = "VPN detectada. Desactive la VPN para continuar y vuelva a intentarlo en unos minutos."
-        default:
-            mensaje = "Fichaje de \(tipo) realizado correctamente"
-        }
-        let alert = UIAlertController(title: tipo.capitalized, message: mensaje, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "Cerrar", style: .default, handler: nil))
-        present(alert, animated: true, completion: nil)
-    }
-}
-
-// MARK: - Subcomponentes UIKit
-// 1. MiHorario: vista con tres labels en horizontal
-class MiHorarioView: UIView {
-    let fechaLabel = UILabel()
-    let horarioLabel = UILabel()
-    let estadoLabel = UILabel()
-    override init(frame: CGRect = .zero) {
-        super.init(frame: frame)
-        setup()
-    }
-    required init?(coder: NSCoder) { super.init(coder: coder); setup() }
-    private func setup() {
-        let hStack = UIStackView(arrangedSubviews: [fechaLabel, horarioLabel, estadoLabel])
-        hStack.axis = .horizontal
-        hStack.distribution = .fillEqually
-        hStack.alignment = .center
-        hStack.spacing = 10
-        hStack.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(hStack)
-        NSLayoutConstraint.activate([
-            hStack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 8),
-            hStack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
-            hStack.topAnchor.constraint(equalTo: topAnchor, constant: 8),
-            hStack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -8),
-            self.heightAnchor.constraint(equalToConstant: 60)
-        ])
-        fechaLabel.textAlignment = .center
-        fechaLabel.textColor = UIColor(red: 0.46, green: 0.60, blue: 0.71, alpha: 1.0)
-        fechaLabel.font = UIFont.boldSystemFont(ofSize: 19)
-        horarioLabel.textAlignment = .center
-        horarioLabel.textColor = UIColor(red: 0.46, green: 0.60, blue: 0.71, alpha: 1.0)
-        horarioLabel.font = UIFont.boldSystemFont(ofSize: 19)
-        estadoLabel.textAlignment = .center
-        estadoLabel.textColor = UIColor.gray
-        estadoLabel.font = UIFont.systemFont(ofSize: 16)
-        // Dummy data
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        fechaLabel.text = formatter.string(from: Date())
-        horarioLabel.text = "08:00 - 15:00"
-        estadoLabel.text = "En horario"
-        layer.borderColor = UIColor(red: 0.75, green: 0.75, blue: 0.75, alpha: 1.0).cgColor
-        layer.borderWidth = 1
-        backgroundColor = .white
-        layer.cornerRadius = 6
-    }
-}
-
-// 2. RecuadroFichajesDia: label para fecha + tabla de fichajes
-class RecuadroFichajesDiaView: UIView {
-    let fechaLabel = UILabel()
-    let tableView = UITableView()
-    override init(frame: CGRect = .zero) {
-        super.init(frame: frame)
-        setup()
-    }
-    required init?(coder: NSCoder) { super.init(coder: coder); setup() }
-    private func setup() {
-        fechaLabel.textAlignment = .center
-        fechaLabel.font = UIFont.boldSystemFont(ofSize: 20)
-        fechaLabel.textColor = UIColor(red: 0.46, green: 0.60, blue: 0.71, alpha: 1.0)
-        tableView.translatesAutoresizingMaskIntoConstraints = false
-        fechaLabel.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(fechaLabel)
-        addSubview(tableView)
-        NSLayoutConstraint.activate([
-            fechaLabel.topAnchor.constraint(equalTo: topAnchor, constant: 4),
-            fechaLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 4),
-            fechaLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -4),
-            tableView.topAnchor.constraint(equalTo: fechaLabel.bottomAnchor, constant: 4),
-            tableView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 0),
-            tableView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: 0),
-            tableView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -4),
-            tableView.heightAnchor.constraint(equalToConstant: 120)
-        ])
-        tableView.layer.cornerRadius = 8
-        tableView.layer.borderWidth = 1
-        tableView.layer.borderColor = UIColor.lightGray.cgColor
-        backgroundColor = .white
-        layer.cornerRadius = 8
-    }
-    func setFecha(fecha: Date) {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        fechaLabel.text = "Fichajes Día: \(formatter.string(from: fecha))"
-    }
-}
-
-// 3. AlertasDiarias: label o textview con borde y fondo
-class AlertasDiariasView: UIView {
-    let textView = UITextView()
-    override init(frame: CGRect = .zero) {
-        super.init(frame: frame)
-        setup()
-    }
-    required init?(coder: NSCoder) { super.init(coder: coder); setup() }
-    private func setup() {
-        textView.text = "No hay alertas disponibles"
-        textView.font = UIFont.systemFont(ofSize: 16)
-        textView.textColor = UIColor(red: 0.46, green: 0.60, blue: 0.71, alpha: 1.0)
-        textView.backgroundColor = UIColor(red: 0.93, green: 0.97, blue: 1.0, alpha: 1.0)
-        textView.isEditable = false
-        textView.layer.cornerRadius = 8
-        textView.layer.borderWidth = 1
-        textView.layer.borderColor = UIColor.lightGray.cgColor
-        textView.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(textView)
-        NSLayoutConstraint.activate([
-            textView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 4),
-            textView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -4),
-            textView.topAnchor.constraint(equalTo: topAnchor, constant: 4),
-            textView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -4),
-            self.heightAnchor.constraint(equalToConstant: 74)
-        ])
-    }
-}
-
-// 4. Modelo de datos visual para fichajes
-struct FichajeVisual {
-    let entrada: String
-    let salida: String
-    let lcumEnt: String
-    let lcumSal: String
-}
+ * Copyright (c) 2025 Juan López
+ * Todos los derechos reservados.
+ *
+ * Este archivo forma parte de la aplicación Kairos24h.
+ * Proyecto académico de desarrollo Android.
+ */
 
 
-// SwiftUI replacement for logoClienteRemoto
-#if canImport(SwiftUI)
-import SwiftUI
-
-struct LogoClienteView: View {
-    private var placeholder = Image("kairos24h")
-
-    private var logoUrl: URL? {
-        guard let tLogo = AuthManager.shared.getUserCredentials().tLogo,
-              !tLogo.isEmpty,
-              tLogo.lowercased() != "null",
-              let url = URL(string: tLogo) else {
-            return nil
-        }
-        return url
-    }
-
-    var body: some View {
-        if let url = logoUrl {
-            AsyncImage(url: url) { phase in
-                switch phase {
-                case .empty:
-                    placeholder
-                        .resizable()
-                        .scaledToFit()
-                case .success(let image):
-                    image
-                        .resizable()
-                        .scaledToFit()
-                case .failure:
-                    placeholder
-                        .resizable()
-                        .scaledToFit()
-                @unknown default:
-                    placeholder
-                        .resizable()
-                        .scaledToFit()
-                }
+//============================== CUADRO PARA FICHAR ======================================
+@Composable
+fun CuadroParaFichar(
+    isVisibleState: MutableState<Boolean>,
+    fichajes: List<String>,
+    onFichaje: (String) -> Unit,
+    onShowAlert: (String) -> Unit,
+    webViewState: MutableState<WebView?>,
+    mostrarBotonesFichaje: Boolean // ← NUEVO PARÁMETRO
+) {
+    // Mover refreshTrigger fuera del if para que se ejecute siempre
+    val refreshTrigger = remember { mutableLongStateOf(System.currentTimeMillis()) }
+    // Añadir observer de ON_RESUME para refrescar el trigger
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                refreshTrigger.longValue = System.currentTimeMillis()
             }
-        } else {
-            placeholder
-                .resizable()
-                .scaledToFit()
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+    if (isVisibleState.value) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.White)
+                .zIndex(2f)
+        ) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier
+                    .fillMaxSize()
+                    // Habilita el scroll vertical:
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 20.dp)
+            ) {
+                // Mostrar lista de fichajes si existe
+                if (fichajes.isNotEmpty()) {
+                    Text(text = "Fichajes del Día", color = Color.Blue)
+                    fichajes.forEach { fichaje ->
+                        Text(text = fichaje, color = Color.DarkGray)
+                    }
+                }
+                Logo_empresa_cliente()
+                MiHorario()
+                if (mostrarBotonesFichaje) {
+                    BotonesFichajeConPermisos(
+                        onFichaje = onFichaje,
+                        onShowAlert = onShowAlert,
+                        webView = webViewState.value ?: return@CuadroParaFichar,
+                        refreshTrigger = refreshTrigger // 7. Pasar refreshTrigger
+                    )
+                }
+                // rememberDatosHorario()  // Eliminado porque ya no se necesita
+                RecuadroFichajesDia(refreshTrigger) // 4. Pasar refreshTrigger a RecuadroFichajesDia
+                AlertasDiarias(
+                    onAbrirWebView = { url -> webViewState.value?.loadUrl(url) },
+                    hideCuadroParaFichar = { isVisibleState.value = false },
+                    refreshTrigger = refreshTrigger
+                )
+                Logo_empresa_desarrolladora()
+            }
         }
     }
 }
-#endif
+
+@Composable
+fun Logo_empresa_cliente() {
+    Box(
+        modifier = ImagenesMovil.logoBoxModifier,
+        contentAlignment = Alignment.Center
+    ) {
+        ImagenesMovil.LogoClienteRemoto()
+    }
+}
 
 @Composable
 fun Logo_empresa_desarrolladora() {
@@ -1315,5 +1029,6 @@ fun MensajeAlerta(
         }
     }
 }
-*/
+
+
 

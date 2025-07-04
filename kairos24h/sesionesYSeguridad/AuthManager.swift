@@ -116,6 +116,7 @@ class AuthManager {
                 completion(false, nil)
                 return
             }
+            print("📥 JSON recibido del backend: \(json)")
 
             let code = json["code"] as? Int ?? -1
             if code == 1 {

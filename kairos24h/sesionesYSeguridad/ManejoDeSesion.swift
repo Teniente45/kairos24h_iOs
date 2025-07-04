@@ -74,6 +74,21 @@ class ManejoDeSesion {
         }.resume()
     }
 
+    // MARK: Se encarga de obtener la fecha y hora de Internet, asi evitamos modificaciones por parte del cliente 
+    /// Async/await versión de obtenerFechaHoraInternet, disponible en iOS 13.0 o superior.
+    @available(iOS 13.0, *)
+    func obtenerFechaHoraInternetAsync() async throws -> Date {
+        try await withCheckedThrowingContinuation { continuation in
+            obtenerFechaHoraInternet { fecha in
+                if let fecha = fecha {
+                    continuation.resume(returning: fecha)
+                } else {
+                    continuation.resume(throwing: NSError(domain: "FechaNula", code: 1))
+                }
+            }
+        }
+    }
+
     /// Inicia un temporizador que simula movimientos del ratón en la WebView para mantener la sesión activa.
     /// - Parameters:
     ///   - webView: La WebView donde se simulará la actividad.
