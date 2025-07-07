@@ -67,7 +67,7 @@ struct ImagenesMovil {
 // Define URLs base y de login para la WebView
 
 struct WebViewURL {
-    static let host = "https://controlhorario.kairos24h.es" // Dominio base de la app
+    static let host = "https://democontrolhorario.kairos24h.es" // Dominio base de la app
     static let entryPoint = "/index.php" // Punto de entrada PHP
     static let urlUsada = "\(host)\(entryPoint)" // URL combinada
     static let actionLogin = "r=wsExterno/loginExterno" // Acción de login por URL

@@ -88,20 +88,20 @@ struct SolapaWebView: View {
                        let data = try? Data(contentsOf: url),
                        let uiImage = UIImage(data: data) {
                         Image(uiImage: uiImage)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 260, height: 130)
-                            .padding(.top, -30)
+
                     } else if let logoCliente = ImagenesMovil.logoCliente {
                         logoCliente
                             .resizable()
                             .scaledToFit()
                             .frame(width: 260, height: 130)
-                            .padding(.top, -30)
+                            .padding(.top, -20)
+                            .padding(.bottom, -20)
                     }
 
                     MiHorarioView()
-
+                    
+                    Spacer().frame(height: 40)
+                    
                     BotonesFichajeView(
                         webView: webView,
                         onFichaje: { tipo in
@@ -125,6 +125,7 @@ struct SolapaWebView: View {
             .background(Color.white)
             .zIndex(2)
             
+            // Barra de navegación del bottom
             ZStack {
                 Color(red: 0xE2 / 255.0, green: 0xE4 / 255.0, blue: 0xE5 / 255.0)
 
@@ -185,8 +186,8 @@ struct MiHorarioView: View {
                 .frame(maxWidth: .infinity)
                 .multilineTextAlignment(.center)
         }
-        .padding(.bottom, 20)
-        .padding(.top, -10)
+        .padding(.horizontal, 12)
+        .padding(.bottom, 12)
         .frame(maxWidth: .infinity)
         .background(Color.white)
         .overlay(
@@ -281,8 +282,9 @@ struct MiHorarioView: View {
         }
     }
 }
-// MARK: Funcion que se encarga de mostrar los horarios del usuario logeado
 
+
+// MARK: Funcion que se encarga de mostrar los horarios del usuario logeado
 
 // --- Botones de Fichaje adaptados desde Kotlin ---
 import Combine
@@ -293,8 +295,10 @@ struct BotonesFichajeView: View {
     @State private var ultimoFichajeTimestamp: TimeInterval = 0
 
     var body: some View {
-        VStack(spacing: 10) {
+        VStack {
             BotonFichaje(tipo: "ENTRADA")
+            // Espacio vertical entre los dos botones
+            Spacer().frame(height: 40)
             BotonFichaje(tipo: "SALIDA")
         }
     }
@@ -321,35 +325,35 @@ struct BotonesFichajeView: View {
                     return
                 }
 
-                switch SeguridadUtils.shared.detectarUbicacionReal() {
-                case .gpsDesactivado:
-                    print("📍 GPS desactivado")
-                    onShowAlert("PROBLEMA GPS")
-                    return
-                case .ubicacionSimulada:
-                    print("🛰️ Ubicación simulada detectada")
-                    onShowAlert("POSIBLE UBI FALSA")
-                    return
-                case .ok:
-                    break
-                }
+                SeguridadUtils.shared.detectarUbicacionReal { resultado in
+                    switch resultado {
+                    case .gpsDesactivado:
+                        print("📍 GPS desactivado")
+                        onShowAlert("PROBLEMA GPS")
+                        return
+                    case .ubicacionSimulada:
+                        print("🛰️ Ubicación simulada detectada")
+                        onShowAlert("POSIBLE UBI FALSA")
+                        return
+                    case .ok:
+                        let ahora = Date().timeIntervalSince1970
+                        if ahora - ultimoFichajeTimestamp < 5 {
+                            print("⚠️ Doble fichaje prevenido")
+                            return
+                        }
+                        ultimoFichajeTimestamp = ahora
 
-                let ahora = Date().timeIntervalSince1970
-                if ahora - ultimoFichajeTimestamp < 5 {
-                    print("⚠️ Doble fichaje prevenido")
-                    return
+                        print("✅ Fichaje \(tipo) procesado")
+                        if let webView = webView {
+                            FichajeManager.shared.fichar(tipo: tipo, webView: webView)
+                        }
+                        onFichaje(tipo)
+                    }
                 }
-                ultimoFichajeTimestamp = ahora
-
-                print("✅ Fichaje \(tipo) procesado")
-                if let webView = webView {
-                    FichajeManager.shared.fichar(tipo: tipo, webView: webView)
-                }
-                onFichaje(tipo)
             }
         }) {
             HStack {
-                Image(tipo == "ENTRADA" ? "fichajeetrada32" : "fichajesalida32")
+                Image(tipo == "ENTRADA" ? "fichajeentrada32" : "fichajesalida32")
                     .resizable()
                     .frame(width: 40, height: 40)
                     .padding(.leading, 15)
