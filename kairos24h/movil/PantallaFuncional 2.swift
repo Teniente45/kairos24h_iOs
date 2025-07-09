@@ -284,22 +284,139 @@ struct MiHorarioView: View {
 }
 
 
-// MARK: Funcion que se encarga de mostrar los horarios del usuario logeado
+// MARK: Vista personalizada para mostrar mensajes de alerta de fichaje
+struct MensajeAlerta: View {
+    let tipo: String
+    let onClose: () -> Void
 
-// --- Botones de Fichaje adaptados desde Kotlin ---
+    private var mensaje: String {
+        switch tipo.uppercased() {
+        case "ENTRADA":
+            return "Fichaje de Entrada realizado correctamente"
+        case "SALIDA":
+            return "Fichaje de Salida realizado correctamente"
+        case "PROBLEMA GPS":
+            return "No se detecta la geolocalización gps. Por favor, active la geolocalización gps para poder fichar y vuelvalo a intentar en unos segundos."
+        case "PROBLEMA INTERNET":
+            return "El dispositivo no está conectado a la red. Revise su conexión a Internet."
+        case "POSIBLE UBI FALSA":
+            return "Se detectó una posible ubicación falsa. Reinicie su geolocalización gps y vuelva a intentarlo en unos minutos"
+        case "VPN DETECTADA":
+            return "VPN detectada. Desactive la VPN para continuar y vuelva a intentarlo en unos minutos."
+        default:
+            return "Fichaje de \(tipo) realizado correctamente"
+        }
+    }
+
+    private var colorFondo: Color {
+        switch tipo.uppercased() {
+        case "ENTRADA":
+            return Color(red: 0.07, green: 0.27, blue: 0.45)
+        case "SALIDA":
+            return Color(red: 0.84, green: 0.92, blue: 0.98)
+        default:
+            return Color.red
+        }
+    }
+
+    private var colorTextoEncabezado: Color {
+        return tipo.uppercased() == "SALIDA" ? Color(red: 0.07, green: 0.27, blue: 0.45) : .white
+    }
+
+    private var textoEncabezado: String {
+        switch tipo.uppercased() {
+        case "ENTRADA":
+            return "ENTRADA"
+        case "SALIDA":
+            return "SALIDA"
+        default:
+            return "ERROR DE FICHAJE"
+        }
+    }
+
+    private var fechaHora: String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "es_ES")
+        formatter.dateFormat = "dd/MM/yyyy HH:mm'h'"
+        return formatter.string(from: Date())
+    }
+
+    var body: some View {
+        ZStack {
+            Color.clear
+
+            VStack(spacing: 16) {
+                VStack(spacing: 0) {
+                    Text(textoEncabezado)
+                        .foregroundColor(colorTextoEncabezado)
+                        .font(.system(size: 18, weight: .bold))
+                        .frame(maxWidth: .infinity)
+                        .padding(8)
+                        .background(colorFondo)
+
+                    VStack(spacing: 16) {
+                        Text(mensaje)
+                            .foregroundColor(.black)
+                            .font(.system(size: 18))
+                            .multilineTextAlignment(.center)
+
+                        Text(fechaHora)
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(.black)
+
+                        Button(action: onClose) {
+                            Text("Cerrar")
+                                .font(.system(size: 18, weight: .bold))
+                                .padding(.horizontal, 40)
+                                .padding(.vertical, 8)
+                                .background(colorFondo)
+                                .foregroundColor(colorTextoEncabezado)
+                                .cornerRadius(6)
+                        }
+                    }
+                    .padding()
+                }
+                .background(Color.white)
+                .cornerRadius(8)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                )
+            }
+            .padding(.horizontal, 32)
+        }
+    }
+}
+
+// MARK: Funcion que se encarga de mostrar los horarios del usuario logeado
 import Combine
 struct BotonesFichajeView: View {
     let webView: WKWebView?
     let onFichaje: (String) -> Void
     let onShowAlert: (String) -> Void
     @State private var ultimoFichajeTimestamp: TimeInterval = 0
+    @State private var mostrarAlerta = false
+    @State private var mensajeAlerta = ""
 
     var body: some View {
-        VStack {
-            BotonFichaje(tipo: "ENTRADA")
-            // Espacio vertical entre los dos botones
-            Spacer().frame(height: 40)
-            BotonFichaje(tipo: "SALIDA")
+        ZStack {
+            VStack {
+                BotonFichaje(tipo: "ENTRADA")
+                // Espacio vertical entre los dos botones
+                Spacer().frame(height: 40)
+                BotonFichaje(tipo: "SALIDA")
+            }
+
+            if mostrarAlerta {
+                MensajeAlerta(tipo: mensajeAlerta) {
+                    withAnimation {
+                        mostrarAlerta = false
+                    }
+                }
+                .transition(.asymmetric(insertion: .scale(scale: 0.9).combined(with: .opacity),
+                                        removal: .opacity))
+                .zIndex(10)
+            }
         }
     }
 
@@ -309,19 +426,28 @@ struct BotonesFichajeView: View {
             Task {
                 guard !SeguridadUtils.shared.isUsingVPN() else {
                     print("🚫 VPN detectada")
-                    onShowAlert("VPN DETECTADA")
+                    withAnimation {
+                        mensajeAlerta = "VPN DETECTADA"
+                        mostrarAlerta = true
+                    }
                     return
                 }
 
                 guard SeguridadUtils.shared.isInternetAvailable() else {
                     print("📡 Sin conexión")
-                    onShowAlert("PROBLEMA INTERNET")
+                    withAnimation {
+                        mensajeAlerta = "PROBLEMA INTERNET"
+                        mostrarAlerta = true
+                    }
                     return
                 }
 
                 guard SeguridadUtils.shared.hasLocationPermission() else {
                     print("📍 Sin permiso de localización")
-                    onShowAlert("PROBLEMA GPS")
+                    withAnimation {
+                        mensajeAlerta = "PROBLEMA GPS"
+                        mostrarAlerta = true
+                    }
                     return
                 }
 
@@ -329,11 +455,17 @@ struct BotonesFichajeView: View {
                     switch resultado {
                     case .gpsDesactivado:
                         print("📍 GPS desactivado")
-                        onShowAlert("PROBLEMA GPS")
+                        withAnimation {
+                            mensajeAlerta = "PROBLEMA GPS"
+                            mostrarAlerta = true
+                        }
                         return
                     case .ubicacionSimulada:
                         print("🛰️ Ubicación simulada detectada")
-                        onShowAlert("POSIBLE UBI FALSA")
+                        withAnimation {
+                            mensajeAlerta = "POSIBLE UBI FALSA"
+                            mostrarAlerta = true
+                        }
                         return
                     case .ok:
                         let ahora = Date().timeIntervalSince1970
@@ -348,6 +480,10 @@ struct BotonesFichajeView: View {
                             FichajeManager.shared.fichar(tipo: tipo, webView: webView)
                         }
                         onFichaje(tipo)
+                        withAnimation {
+                            mensajeAlerta = "Fichaje de tipo \(tipo) realizado correctamente"
+                            mostrarAlerta = true
+                        }
                     }
                 }
             }
@@ -409,3 +545,9 @@ struct FichajeManager {
         }
     }
 }
+
+
+// MARK: Nos muestras los fichajes que ha hecho la persona en la fecha actual o la que seleccione el usuario
+
+
+
