@@ -36,7 +36,7 @@ struct PaginaSecundariaView: View {
                                 .resizable()
                                 .frame(width: 24, height: 24)
 
-                            Text((AuthManager.shared.getUserCredentials().usuario ?? "").uppercased())
+                            Text((AuthManager.shared.getUserCredentials().usuario).uppercased())
                                 .foregroundColor(Color(red: 0.46, green: 0.60, blue: 0.71)) // Color(0xFF7599B6)
                                 .font(.system(size: 14, weight: .medium))
                         }
@@ -109,7 +109,7 @@ struct PaginaSecundariaView: View {
             )
             .onAppear {
                 print("✅ PaginaSecundariaView - onAppear ejecutado")
-                xEmpleado = AuthManager.shared.getUserCredentials().xEmpleado ?? ""
+                xEmpleado = AuthManager.shared.getUserCredentials().xEmpleado
                 print("🧾 xEmpleado recuperado: \(xEmpleado)")
                 iniciarTimerDeSesion()
             }

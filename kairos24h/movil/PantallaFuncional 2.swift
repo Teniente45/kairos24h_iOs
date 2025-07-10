@@ -23,7 +23,7 @@ struct CabeceraUsuarioView: View {
                         .resizable()
                         .frame(width: 24, height: 24)
 
-                    Text((AuthManager.shared.getUserCredentials().usuario ?? "").uppercased())
+                    Text(AuthManager.shared.getUserCredentials().usuario.uppercased())
                         .foregroundColor(Color(red: 0.46, green: 0.60, blue: 0.71))
                         .font(.system(size: 14, weight: .medium))
                 }
@@ -99,7 +99,6 @@ struct SolapaWebView: View {
                     }
 
                     MiHorarioView()
-                    
                     Spacer().frame(height: 40)
                     
                     BotonesFichajeView(
@@ -111,7 +110,25 @@ struct SolapaWebView: View {
                             print("⚠️ Alerta mostrada al usuario: \(mensaje)")
                         }
                     )
-
+                    Spacer().frame(height: 40)
+                    
+                    @State var refreshTrigger = 0
+                    
+                    RecuadroFichajesDia(refreshTrigger: $refreshTrigger)
+                    Spacer().frame(height: 40)
+                    
+                    AlertasDiariasView(
+                        onAbrirWebView: { url in
+                            let jsCode = "window.location.href = '\(url)';"
+                            webView.evaluateJavaScript(jsCode)
+                        },
+                        hideCuadroParaFichar: {
+                            // No se requiere acción adicional en esta vista, se deja vacío
+                        },
+                        refreshTrigger: .constant(0)
+                    )
+                    .padding(.bottom, 12)
+                    
                     if let logoDev = ImagenesMovil.logoDesarrolladora {
                         logoDev
                             .resizable()
@@ -548,6 +565,323 @@ struct FichajeManager {
 
 
 // MARK: Nos muestras los fichajes que ha hecho la persona en la fecha actual o la que seleccione el usuario
+struct FichajeVisual {
+    let entrada: String
+    let salida: String
+    let lcumEnt: String
+    let lcumSal: String
+}
+
+struct RecuadroFichajesDia: View {
+    @Binding var refreshTrigger: Int
+    @State private var fechaSeleccionada: Date = Date()
+    @State private var fichajes: [FichajeVisual] = []
+    @State private var mostrarCalendario = false
+    @State private var fechaTemporal = Date()
+
+    var body: some View {
+        VStack(spacing: 10) {
+            Text("Fichajes Día")
+                .font(.system(size: 25, weight: .bold))
+                .foregroundColor(Color(red: 0.46, green: 0.60, blue: 0.71))
+                .offset(y: -20)
+
+            HStack(spacing: 10) {
+                // Botón de calendario
+                Button {
+                    fechaTemporal = fechaSeleccionada
+                    mostrarCalendario = true
+                } label: {
+                    Image("ic_calendario")
+                        .resizable()
+                        .frame(width: 26, height: 26)
+                }
+                .sheet(isPresented: $mostrarCalendario) {
+                    VStack(spacing: 20) {
+                        DatePicker(
+                            "Selecciona una fecha",
+                            selection: $fechaTemporal,
+                            displayedComponents: [.date]
+                        )
+                        .datePickerStyle(.graphical)
+                        .labelsHidden()
+                        Button("Aceptar") {
+                            fechaSeleccionada = fechaTemporal
+                            mostrarCalendario = false
+                        }
+                        .font(.headline)
+                        .padding()
+                    }
+                    .padding()
+                }
+                Button {
+                    if let fecha = Calendar.current.date(byAdding: .day, value: -1, to: fechaSeleccionada) {
+                        fechaSeleccionada = fecha
+                    }
+                } label: {
+                    Image("hacia_atras").resizable().frame(width: 26, height: 26)
+                }
+                Text(formattedVisibleDate)
+                    .font(.system(size: 22))
+                    .foregroundColor(.gray)
+                Button {
+                    if let fecha = Calendar.current.date(byAdding: .day, value: 1, to: fechaSeleccionada) {
+                        fechaSeleccionada = fecha
+                    }
+                } label: {
+                    Image("hacia_delante").resizable().frame(width: 26, height: 26)
+                }
+                Button {
+                    Task {
+                        do {
+                            let fecha = try await ManejoDeSesion.shared.obtenerFechaHoraInternetAsync()
+                            fechaSeleccionada = fecha
+                        } catch {
+                            print("❌ Error al obtener la fecha desde el servidor: \(error)")
+                        }
+                    }
+                } label: {
+                    Image("reload").resizable().frame(width: 32, height: 32)
+                }
+            }
+
+            VStack(spacing: 10) {
+                if fichajes.isEmpty {
+                    Text("No hay fichajes hoy")
+                        .font(.system(size: 23))
+                        .foregroundColor(.gray)
+                } else {
+                    ForEach(fichajes.indices, id: \.self) { i in
+                        let f = fichajes[i]
+                        HStack {
+                            Text("\(f.entrada) - ")
+                                .font(.system(size: 23))
+                                .foregroundColor(color(for: f.lcumEnt))
+                            Text(f.salida)
+                                .font(.system(size: 23))
+                                .foregroundColor(color(for: f.lcumSal))
+                        }
+                    }
+                }
+            }
+            .padding(10)
+            .background(Color.white)
+        }
+        .onChange(of: fechaSeleccionada, fetchFichajes)
+        .onChange(of: refreshTrigger, fetchFichajes)
+        .task { fetchFichajes() }
+    }
+
+    var formattedDate: String {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd"
+        return f.string(from: fechaSeleccionada)
+    }
+
+    var formattedVisibleDate: String {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "es_ES")
+        f.dateFormat = "dd/MM/yyyy"
+        return f.string(from: fechaSeleccionada)
+    }
+
+    func color(for valor: String) -> Color {
+        switch valor {
+        case "true": return .green
+        case "false": return .red
+        default: return Color(red: 0.46, green: 0.60, blue: 0.71)
+        }
+    }
+
+    func fetchFichajes() {
+        guard AuthManager.shared.getUserCredentials().xEmpleado.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) != nil else { return }
+        let urlString = BuildURLMovil.getURLFichajesDia() + "&fecha=\(formattedDate)"
+        print("📡 URL consultada para fichajes del día: \(urlString)")
+        guard let url = URL(string: urlString) else { return }
+
+        URLSession.shared.dataTask(with: url) { data, _, _ in
+            guard let data = data,
+                  let raw = String(data: data, encoding: .utf8)?.replacingOccurrences(of: "\u{feff}", with: ""),
+                  let json = try? JSONSerialization.jsonObject(with: Data(raw.utf8)) as? [String: Any],
+                  let arr = json["dataFichajes"] as? [[String: Any]] else {
+                DispatchQueue.main.async { self.fichajes = [] }
+                return
+            }
+
+            let nuevos = arr.compactMap { item -> FichajeVisual? in
+                let entradaMinutos = item["nMinEnt"]
+                let salidaMinutos = item["nMinSal"]
+
+                print("🔍 Datos crudos recibidos: nMinEnt=\(String(describing: entradaMinutos)), nMinSal=\(String(describing: salidaMinutos))")
+
+                func convertirMinutosAHoraTexto(_ valor: Any?) -> String {
+                    if let str = valor as? String, let minutos = Int(str) {
+                        let horas = minutos / 60
+                        let mins = minutos % 60
+                        return String(format: "%02d:%02d h", horas, mins)
+                    } else if let minutos = valor as? Int {
+                        let horas = minutos / 60
+                        let mins = minutos % 60
+                        return String(format: "%02d:%02d h", horas, mins)
+                    } else {
+                        return "??"
+                    }
+                }
+
+                let entrada = convertirMinutosAHoraTexto(entradaMinutos)
+                let salida = convertirMinutosAHoraTexto(salidaMinutos)
+
+                print("🕒 Horas formateadas: entrada=\(entrada), salida=\(salida)")
+
+                return FichajeVisual(
+                    entrada: entrada,
+                    salida: salida,
+                    lcumEnt: (item["lCumEnt"] as? Bool)?.description ?? "",
+                    lcumSal: (item["lCumSal"] as? Bool)?.description ?? ""
+                )
+            }
+
+            DispatchQueue.main.async {
+                self.fichajes = nuevos
+            }
+        }.resume()
+    }
+}
+
+// Helper para sumar días a Date
+fileprivate extension Date {
+    mutating func addDays(_ days: Int) {
+        if let newDate = Calendar.current.date(byAdding: .day, value: days, to: self) {
+            self = newDate
+        }
+    }
+}
 
 
+// MARK: Esta función se encarga de mostrar las Alertas que pueda tener el usuario
+struct AvisoItem: Identifiable {
+    let id = UUID()
+    let titulo: String
+    let detalle: String
+    let url: String?
+}
+
+struct AlertasDiariasView: View {
+    let onAbrirWebView: (String) -> Void
+    let hideCuadroParaFichar: () -> Void
+    @Binding var refreshTrigger: Int
+
+    @State private var avisos: [AvisoItem] = []
+    @State private var expandedStates: [UUID: Bool] = [:]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Avisos / Alertas")
+                .font(.system(size: 23, weight: .bold))
+                .foregroundColor(Color(red: 0.46, green: 0.60, blue: 0.71))
+                .padding(.horizontal, 8)
+
+            if avisos.isEmpty {
+                Text("Cargando alertas...")
+                    .foregroundColor(.gray)
+                    .padding(.horizontal, 8)
+            } else {
+                ForEach(avisos) { aviso in
+                    VStack(spacing: 4) {
+                        HStack {
+                            Image(systemName: expandedStates[aviso.id] == true ? "minus.circle" : "plus.circle")
+                                .resizable()
+                                .frame(width: 20, height: 20)
+                                .foregroundColor(Color(red: 0.46, green: 0.60, blue: 0.71))
+                                .onTapGesture {
+                                    expandedStates[aviso.id] = !(expandedStates[aviso.id] ?? false)
+                                }
+
+                            Text(aviso.titulo)
+                                .font(.system(size: 18))
+                                .foregroundColor(Color(red: 0.46, green: 0.60, blue: 0.71))
+                                .lineLimit(1)
+                                .truncationMode(.tail)
+
+                            Spacer()
+
+                            if let url = aviso.url, !url.isEmpty {
+                                Image(systemName: "arrow.right.circle")
+                                    .resizable()
+                                    .frame(width: 20, height: 20)
+                                    .foregroundColor(Color(red: 0.46, green: 0.60, blue: 0.71))
+                                    .onTapGesture {
+                                        onAbrirWebView(url)
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                                            hideCuadroParaFichar()
+                                        }
+                                    }
+                            }
+                        }
+                        .padding(8)
+                        .background(RoundedRectangle(cornerRadius: 4).stroke(Color.gray.opacity(0.3)))
+
+                        if expandedStates[aviso.id] == true {
+                            Text(aviso.detalle)
+                                .font(.system(size: 16))
+                                .padding(.horizontal, 8)
+                        }
+                    }
+                }
+            }
+        }
+        .padding()
+        .background(Color.white)
+        .cornerRadius(8)
+        .onAppear {
+            fetchAlertas()
+            // refresco automático cada 10 minutos
+            Timer.scheduledTimer(withTimeInterval: 600, repeats: true) { _ in
+                refreshTrigger += 1
+                fetchAlertas()
+            }
+        }
+        .onChange(of: refreshTrigger) { _ in
+            fetchAlertas()
+        }
+    }
+
+    func fetchAlertas() {
+        guard let url = URL(string: BuildURLMovil.getURLAlertas()) else { return }
+
+        var request = URLRequest(url: url)
+        if let cookies = HTTPCookieStorage.shared.cookies(for: url) {
+            let cookieHeader = cookies.map { "\($0.name)=\($0.value)" }.joined(separator: "; ")
+            request.addValue(cookieHeader, forHTTPHeaderField: "Cookie")
+        }
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            guard let data = data,
+                  let jsonString = String(data: data, encoding: .utf8)?
+                      .replacingOccurrences(of: "\u{feff}", with: ""),
+                  let json = try? JSONSerialization.jsonObject(with: Data(jsonString.utf8)) as? [String: Any],
+                  let arr = json["dataAvisos"] as? [[String: Any]]
+            else {
+                DispatchQueue.main.async {
+                    self.avisos = [AvisoItem(titulo: "No hay alertas disponibles", detalle: "", url: nil)]
+                }
+                return
+            }
+
+            let nuevos = arr.map {
+                AvisoItem(
+                    titulo: $0["D_AVISO"] as? String ?? "Sin aviso",
+                    detalle: $0["T_AVISO"] as? String ?? "",
+                    url: ($0["T_URL"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
+                )
+            }
+
+            DispatchQueue.main.async {
+                self.avisos = nuevos.isEmpty
+                    ? [AvisoItem(titulo: "No hay alertas disponibles", detalle: "", url: nil)]
+                    : nuevos
+            }
+        }.resume()
+    }
+}
 
