@@ -26,36 +26,7 @@ struct PaginaSecundariaView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                ZStack {
-                    Color(red: 0xE2 / 255.0, green: 0xE4 / 255.0, blue: 0xE5 / 255.0)
-
-                    HStack {
-                        // Sección izquierda: avatar + nombre
-                        HStack(spacing: 8) {
-                            Image("cliente32")
-                                .resizable()
-                                .frame(width: 24, height: 24)
-
-                            Text((AuthManager.shared.getUserCredentials().usuario).uppercased())
-                                .foregroundColor(Color(red: 0.46, green: 0.60, blue: 0.71)) // Color(0xFF7599B6)
-                                .font(.system(size: 14, weight: .medium))
-                        }
-
-                        Spacer()
-
-                        // Sección derecha: botón cerrar sesión
-                        Button(action: {
-                            showLogoutDialog = true
-                        }) {
-                            Image("ic_cerrar32")
-                                .resizable()
-                                .frame(width: 24, height: 24)
-                        }
-                    }
-                    .padding(.horizontal, 12)
-                    .frame(height: 30)
-                }
-                .frame(height: 30)
+                CabeceraUsuarioView(showLogoutDialog: $showLogoutDialog, navegar: $navegar)
 
                 WebViewWrapper(
                     reloadTrigger: webViewReloadTrigger,
@@ -64,7 +35,7 @@ struct PaginaSecundariaView: View {
                     webView: $webViewReferencia
                 )
                 .frame(maxHeight: .infinity)
-                .padding(.bottom, 56)
+                BarraNavBottom(webView: webViewReferencia, mostrarSolapa: $mostrarSolapa)
             }
             .alert(isPresented: $showLogoutDialog) {
                 Alert(
@@ -77,34 +48,17 @@ struct PaginaSecundariaView: View {
                 )
             }
             .zIndex(0)
-            .background(Color.white)
             .overlay(
                 Group {
                     if mostrarSolapa {
                         SolapaWebView(
                             webView: webViewReferencia,
                             onClose: { mostrarSolapa = false },
-                            mostrarLogin: $mostrarLogin
+                            mostrarLogin: $mostrarLogin,
+                            mostrarSolapa: $mostrarSolapa
                         )
                         .zIndex(2)
                     }
-
-                    VStack {
-                        Spacer()
-                        Button(action: {
-                            mostrarSolapa = true
-                        }) {
-                            Image("menu_opciones")
-                                .resizable()
-                                .frame(width: 40, height: 40)
-                                .padding()
-                        }
-                        .background(Color.white)
-                        .clipShape(Circle())
-                        .shadow(radius: 4)
-                        .padding(.bottom, 20)
-                    }
-                    .zIndex(1)
                 }
             )
             .onAppear {

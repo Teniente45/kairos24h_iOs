@@ -1,1034 +1,944 @@
-/*
- * Copyright (c) 2025 Juan López
- * Todos los derechos reservados.
- *
- * Este archivo forma parte de la aplicación Kairos24h.
- * Proyecto académico de desarrollo Android.
- */
+//
+//  SolapaWebView.swift
+//  Kairos24h
+//
+//  Created by Juan López on 2025.
+//
 
+import SwiftUI
+import WebKit
 
-//============================== CUADRO PARA FICHAR ======================================
-@Composable
-fun CuadroParaFichar(
-    isVisibleState: MutableState<Boolean>,
-    fichajes: List<String>,
-    onFichaje: (String) -> Unit,
-    onShowAlert: (String) -> Unit,
-    webViewState: MutableState<WebView?>,
-    mostrarBotonesFichaje: Boolean // ← NUEVO PARÁMETRO
-) {
-    // Mover refreshTrigger fuera del if para que se ejecute siempre
-    val refreshTrigger = remember { mutableLongStateOf(System.currentTimeMillis()) }
-    // Añadir observer de ON_RESUME para refrescar el trigger
-    val lifecycleOwner = LocalLifecycleOwner.current
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                refreshTrigger.longValue = System.currentTimeMillis()
-            }
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
-        }
-    }
-    if (isVisibleState.value) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.White)
-                .zIndex(2f)
-        ) {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = Modifier
-                    .fillMaxSize()
-                    // Habilita el scroll vertical:
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 20.dp)
-            ) {
-                // Mostrar lista de fichajes si existe
-                if (fichajes.isNotEmpty()) {
-                    Text(text = "Fichajes del Día", color = Color.Blue)
-                    fichajes.forEach { fichaje ->
-                        Text(text = fichaje, color = Color.DarkGray)
-                    }
+// Mark: Barra de usuario con nombre de usuario y boton para cerrar sesión
+struct CabeceraUsuarioView: View {
+    @Binding var showLogoutDialog: Bool
+    @Binding var navegar: Bool
+
+    var body: some View {
+        ZStack {
+            Color(red: 0xE2 / 255.0, green: 0xE4 / 255.0, blue: 0xE5 / 255.0)
+                .ignoresSafeArea(.container, edges: .top)
+
+            HStack {
+                HStack(spacing: 8) {
+                    Image("icono_usuario")
+                        .resizable()
+                        .frame(width: 24, height: 24)
+
+                    Text(AuthManager.shared.getUserCredentials().usuario.uppercased())
+                        .foregroundColor(Color(red: 0.46, green: 0.60, blue: 0.71))
+                        .font(.system(size: 14, weight: .medium))
                 }
-                Logo_empresa_cliente()
-                MiHorario()
-                if (mostrarBotonesFichaje) {
-                    BotonesFichajeConPermisos(
-                        onFichaje = onFichaje,
-                        onShowAlert = onShowAlert,
-                        webView = webViewState.value ?: return@CuadroParaFichar,
-                        refreshTrigger = refreshTrigger // 7. Pasar refreshTrigger
-                    )
-                }
-                // rememberDatosHorario()  // Eliminado porque ya no se necesita
-                RecuadroFichajesDia(refreshTrigger) // 4. Pasar refreshTrigger a RecuadroFichajesDia
-                AlertasDiarias(
-                    onAbrirWebView = { url -> webViewState.value?.loadUrl(url) },
-                    hideCuadroParaFichar = { isVisibleState.value = false },
-                    refreshTrigger = refreshTrigger
-                )
-                Logo_empresa_desarrolladora()
-            }
-        }
-    }
-}
 
-@Composable
-fun Logo_empresa_cliente() {
-    Box(
-        modifier = ImagenesMovil.logoBoxModifier,
-        contentAlignment = Alignment.Center
-    ) {
-        ImagenesMovil.LogoClienteRemoto()
-    }
-}
+                Spacer()
 
-@Composable
-fun Logo_empresa_desarrolladora() {
-    Box(
-        modifier = ImagenesMovil.logoBoxModifierDev,
-        contentAlignment = Alignment.Center
-    ) {
-        Image(
-            painter = painterResource(id = ImagenesMovil.lodoDesarrolladora),
-            contentDescription = "logo de la desarrolladora",
-            modifier = ImagenesMovil.logoModifierDev
-        )
-    }
-}
-
-
-@Composable
-fun MiHorario() {
-    // Obtener contexto y formateadores de fecha
-    val context = LocalContext.current
-    val dateFormatter = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()) }
-    var urlHorario by remember { mutableStateOf("") }
-    var fechaFormateada by remember { mutableStateOf("Cargando...") }
-
-    LaunchedEffect(Unit) {
-        val fechaServidor = ManejoDeSesion.obtenerFechaHoraInternet()
-        if (fechaServidor != null) {
-            val fecha = dateFormatter.format(fechaServidor)
-            urlHorario = BuildURLmovil.getMostrarHorarios(context) + "&fecha=$fecha"
-            val dateFormatterTexto = SimpleDateFormat("EEEE, d 'de' MMMM 'de' yyyy", Locale("es", "ES"))
-            fechaFormateada = dateFormatterTexto.format(fechaServidor)
-                .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale("es", "ES")) else it.toString() }
-        }
-    }
-
-    // Muestra en el log la URL que se va a usar para consultar el horario del usuario
-    Log.d("MiHorario", "URL solicitada: $urlHorario")
-
-    // Estado para mostrar el horario
-    val horarioTexto by produceState(initialValue = "Cargando horario...", key1 = urlHorario) {
-        if (urlHorario.isBlank()) {
-            value = "Cargando horario..."
-            return@produceState
-        }
-        value = try {
-            withContext(Dispatchers.IO) {
-                val client = OkHttpClient()
-                val request = Request.Builder().url(urlHorario).build()
-                val response = client.newCall(request).execute()
-                val responseBody = response.body?.string()
-                // Muestra la respuesta completa del servidor tras pedir el horario
-                Log.d("MiHorario", "Respuesta completa del servidor:\n$responseBody")
-
-                val cleanedBody = responseBody?.replace("\uFEFF", "")
-
-                if (!response.isSuccessful || cleanedBody.isNullOrEmpty()) {
-                    Log.e("MiHorario", "Error: ${response.code}")
-                    "Error al obtener horario"
-                } else {
-                    try {
-                        val json = JSONObject(cleanedBody)
-                        val dataArray = json.getJSONArray("dataHorario")
-                        if (dataArray.length() > 0) {
-                            val item = dataArray.getJSONObject(0)
-                            val horaIni = item.optInt("N_HORINI", 0)
-                            val horaFin = item.optInt("N_HORFIN", 0)
-                            // Muestra el valor obtenido del campo N_HORINI en el JSON
-                            Log.d("MiHorario", "Valor N_HORINI: $horaIni")
-                            // Muestra el valor obtenido del campo N_HORFIN en el JSON
-                            Log.d("MiHorario", "Valor N_HORFIN: $horaFin")
-
-                            if (horaIni == 0 && horaFin == 0) {
-                                "No Horario"
-                            } else {
-                                @SuppressLint("DefaultLocale")
-                                fun minutosAHora(minutos: Int): String {
-                                    val horas = minutos / 60
-                                    val mins = minutos % 60
-                                    return String.format(Locale.getDefault(), "%02d:%02d", horas, mins)
-                                }
-                                minutosAHora(horaIni) + " - " + minutosAHora(horaFin)
-                            }
-                        } else {
-                            "No Horario"
-                        }
-                    } catch (e: Exception) {
-                        // Informa si hubo un error al parsear el JSON del horario
-                        Log.e("MiHorario", "Error al parsear JSON: ${e.message}\nResponse body: $responseBody")
-                        "Error al procesar horario"
-                    }
+                Button(action: {
+                    showLogoutDialog = true
+                }) {
+                    Image("ic_cerrar32")
+                        .resizable()
+                        .frame(width: 24, height: 24)
                 }
             }
-        } catch (e: Exception) {
-            // Informa si hubo un error general al obtener el horario
-            Log.e("MiHorario", "Excepción al obtener horario: ${e.message}")
-            "Error de conexión"
+            .padding(.horizontal, 12)
+            .padding(.bottom, 5)
+            .frame(height: 30)
         }
-    }
-
-    // Interfaz
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .offset(y = (-10).dp)
-            .padding(bottom = 20.dp)
-            .border(width = 1.dp, color = Color(0xFFC0C0C0))
-            .background(Color.White),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = fechaFormateada,
-            color = Color(0xFF7599B6),
-            fontWeight = FontWeight.Bold,
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Center,
-            fontSize = 22.sp
-        )
-        Text(
-            text = horarioTexto,
-            color = if (horarioTexto.contains("Error") || horarioTexto.contains("No hay")) Color.Red else Color(0xFF7599B6),
-            fontWeight = FontWeight.Bold,
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Center
-        )
-    }
-}
-
-@Composable
-fun BotonesFichajeConPermisos(
-    onFichaje: (tipo: String) -> Unit,
-    onShowAlert: (String) -> Unit,
-    webView: WebView?,
-    refreshTrigger: MutableState<Long> // 5. Añadir parámetro refreshTrigger
-) {
-    // Añadir al principio de BotonesFichajeConPermisos
-    var ultimoFichajeTimestamp by remember { mutableLongStateOf(0L) }
-    val context = LocalContext.current
-    var pendingFichaje by remember { mutableStateOf<String?>(null) }
-
-    // Launcher para solicitar el permiso de ubicación
-    rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
-            pendingFichaje?.let { tipo ->
-                // Informa que se ha concedido el permiso para fichar, se indica el tipo (ENTRADA/SALIDA)
-                Log.d("Fichaje", "Permiso concedido. Procesando fichaje de: $tipo")
-                if (webView != null) {
-                    fichar(context, tipo, webView)
-                } else {
-                    // Informa que el WebView es null y por eso no se puede proceder con el fichaje
-                    Log.e("Fichaje", "webView es null. No se puede fichar.")
-                }
-                onFichaje(tipo)
-            }
-        } else {
-            // Informa que se ha denegado el permiso de ubicación
-            Log.d("Fichaje", "Permiso denegado para ACCESS_FINE_LOCATION")
-        }
-        pendingFichaje = null
-    }
-
-    // BOTÓN ENTRADA
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp)
-            .height(55.dp)
-            .offset(y = (-20).dp)
-            .clickable {
-                when {
-                    SeguridadUtils.isUsingVPN(context) -> {
-                        // Informa que se ha intentado fichar con VPN activa
-                        Log.e("Seguridad", "Intento de fichaje con VPN activa")
-                        onShowAlert("VPN DETECTADA")
-                        return@clickable
-                    }
-                    !SeguridadUtils.isInternetAvailable(context) -> {
-                        // Informa que no hay conexión a internet en el momento del fichaje
-                        Log.e("Fichar", "No hay conexión a Internet")
-                        onShowAlert("PROBLEMA INTERNET")
-                        return@clickable
-                    }
-                    !SeguridadUtils.hasLocationPermission(context) -> {
-                        // Informa que no se tiene permiso de ubicación GPS
-                        Log.e("Fichar", "No se cuenta con el permiso ACCESS_FINE_LOCATION")
-                        onShowAlert("PROBLEMA GPS")
-                        return@clickable
-                    }
-                }
-                // Lanzar la comprobación real de ubicación simulada
-                CoroutineScope(Dispatchers.Main).launch {
-                    when (SeguridadUtils.detectarUbicacionReal(context)) {
-                        ResultadoUbicacion.GPS_DESACTIVADO -> {
-                            // Informa que el GPS está desactivado
-                            Log.e("Seguridad", "GPS desactivado")
-                            onShowAlert("PROBLEMA GPS")
-                            return@launch
-                        }
-                        ResultadoUbicacion.UBICACION_SIMULADA -> {
-                            // Informa que se detectó una ubicación simulada
-                            Log.e("Seguridad", "Ubicación simulada detectada")
-                            onShowAlert("POSIBLE UBI FALSA")
-                            return@launch
-                        }
-                        ResultadoUbicacion.OK -> {
-                            // continuar con fichaje
-                        }
-                    }
-                    // --- Prevención de fichaje duplicado ---
-                    val ahora = System.currentTimeMillis()
-                    if (ahora - ultimoFichajeTimestamp < 5000) {
-                        // Previene fichajes duplicados en corto intervalo de tiempo
-                        Log.w("Fichaje", "Fichaje repetido ignorado")
-                        return@launch
-                    }
-                    ultimoFichajeTimestamp = ahora
-                    // --- Fin prevención ---
-                    // Informa que se está procesando el fichaje de ENTRADA
-                    Log.d(
-                        "Fichaje",
-                        "Fichaje Entrada: Permiso concedido. Procesando fichaje de ENTRADA"
-                    )
-                    webView?.let { fichar(context, "ENTRADA", it) }
-                    onFichaje("ENTRADA")
-                    refreshTrigger.value = System.currentTimeMillis() // 6. Actualizar refreshTrigger tras fichaje
-                    // Retardo y actualización adicional tras 1 segundo
-                    CoroutineScope(Dispatchers.Main).launch {
-                        delay(1000)
-                        refreshTrigger.value = System.currentTimeMillis()
-                    }
-                }
-            },
-        color = Color(0xFF7599B6),
-        shape = RoundedCornerShape(10.dp),
-        border = BorderStroke(2.dp, Color(0xFF0E4879))
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxSize()
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.fichajeetrada32),
-                contentDescription = "Imagen Fichaje Entrada",
-                modifier = Modifier
-                    .padding(start = 15.dp)
-                    .height(40.dp)
-                    .aspectRatio(1f),
-                contentScale = ContentScale.Crop
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = buildAnnotatedString {
-                    append("Fichaje ")
-                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                        append("Entrada")
-                    }
+        .frame(height: 30)
+        .alert(isPresented: $showLogoutDialog) {
+            Alert(
+                title: Text("¿Quieres cerrar la sesión?"),
+                primaryButton: .destructive(Text("Sí")) {
+                    AuthManager.shared.clearAllUserData()
+                    navegar = true
                 },
-                color = Color.White,
-                fontSize = 25.sp,
-                modifier = Modifier.align(Alignment.CenterVertically)
-            )
-        }
-    }
-
-    Spacer(modifier = Modifier.height(10.dp))
-
-    // BOTÓN SALIDA
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp)
-            .offset(y = (-40).dp)
-            .height(55.dp)
-            .clickable {
-                when {
-                    SeguridadUtils.isUsingVPN(context) -> {
-                        // Informa que se ha intentado fichar con VPN activa
-                        Log.e("Seguridad", "Intento de fichaje con VPN activa")
-                        onShowAlert("VPN DETECTADA")
-                        return@clickable
-                    }
-                    !SeguridadUtils.isInternetAvailable(context) -> {
-                        // Informa que no hay conexión a internet en el momento del fichaje
-                        Log.e("Fichar", "No hay conexión a Internet")
-                        onShowAlert("PROBLEMA INTERNET")
-                        return@clickable
-                    }
-                    !SeguridadUtils.hasLocationPermission(context) -> {
-                        // Informa que no se tiene permiso de ubicación GPS
-                        Log.e("Fichar", "No se cuenta con el permiso ACCESS_FINE_LOCATION")
-                        onShowAlert("PROBLEMA GPS")
-                        return@clickable
-                    }
-                }
-                // Lanzar la comprobación real de ubicación simulada
-                CoroutineScope(Dispatchers.Main).launch {
-                    when (SeguridadUtils.detectarUbicacionReal(context)) {
-                        ResultadoUbicacion.GPS_DESACTIVADO -> {
-                            // Informa que el GPS está desactivado
-                            Log.e("Seguridad", "GPS desactivado")
-                            onShowAlert("PROBLEMA GPS")
-                            return@launch
-                        }
-                        ResultadoUbicacion.UBICACION_SIMULADA -> {
-                            // Informa que se detectó una ubicación simulada
-                            Log.e("Seguridad", "Ubicación simulada detectada")
-                            onShowAlert("POSIBLE UBI FALSA")
-                            return@launch
-                        }
-                        ResultadoUbicacion.OK -> {
-                            // continuar con fichaje
-                        }
-                    }
-                    // --- Prevención de fichaje duplicado ---
-                    val ahora = System.currentTimeMillis()
-                    if (ahora - ultimoFichajeTimestamp < 5000) {
-                        // Previene fichajes duplicados en corto intervalo de tiempo
-                        Log.w("Fichaje", "Fichaje repetido ignorado")
-                        return@launch
-                    }
-                    ultimoFichajeTimestamp = ahora
-                    // --- Fin prevención ---
-                    // Informa que se está procesando el fichaje de SALIDA
-                    Log.d("Fichaje", "Fichaje Salida: Permiso concedido. Procesando fichaje de SALIDA")
-                    webView?.let { fichar(context, "SALIDA", it) }
-                    onFichaje("SALIDA")
-                    refreshTrigger.value = System.currentTimeMillis() // 6. Actualizar refreshTrigger tras fichaje
-                    // Retardo y actualización adicional tras 1 segundo
-                    CoroutineScope(Dispatchers.Main).launch {
-                        delay(1000)
-                        refreshTrigger.value = System.currentTimeMillis()
-                    }
-                }
-            },
-        color = Color(0xFF7599B6),
-        shape = RoundedCornerShape(10.dp),
-        border = BorderStroke(2.dp, Color(0xFF0E4879))
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxSize()
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.fichajesalida32),
-                contentDescription = "Imagen Fichaje Salida",
-                modifier = Modifier
-                    .padding(start = 15.dp)
-                    .height(40.dp)
-                    .aspectRatio(1f),
-                contentScale = ContentScale.Crop
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = buildAnnotatedString {
-                    append("Fichaje ")
-                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                        append("Salida")
-                    }
-                },
-                color = Color.White,
-                fontSize = 25.sp,
-                modifier = Modifier.align(Alignment.CenterVertically)
+                secondaryButton: .cancel(Text("No"))
             )
         }
     }
 }
 
-data class FichajeVisual(val entrada: String, val salida: String, val lcumEnt: String, val lcumSal: String)
+struct SolapaWebView: View {
+    let webView: WKWebView
+    let onClose: () -> Void
+    @Binding var mostrarLogin: Bool
+    @Binding var mostrarSolapa: Bool
 
-@Composable
-fun RecuadroFichajesDia(refreshTrigger: State<Long>) {
-    val context = LocalContext.current
-    val dateFormatter = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()) }
+    @State private var showLogoutDialog = false
+    @State private var navegar = false
+    let cUsuario = AuthManager.shared.getUserCredentials().usuario
+    
+    // Con esto puedo cambiar el tamaño de los iconos de la barra de navegación
+    let iconoBarraInferiorAltura: CGFloat = 36
+    
+    private func BarraInferiorIcono(nombre: String) -> some View {
+        Image(nombre)
+            .resizable()
+            .aspectRatio(contentMode: .fit)
+            .frame(height: iconoBarraInferiorAltura)
+    }
 
-    // --- NUEVO: Variables para horario ---
-    val horaInicioHorario = remember { mutableIntStateOf(0) }
-    val horaFinHorario = remember { mutableIntStateOf(0) }
+    var body: some View {
+        VStack(spacing: 0) {
+            CabeceraUsuarioView(showLogoutDialog: $showLogoutDialog, navegar: $navegar)
 
-    LaunchedEffect(Unit) {
-        val fechaServidor = ManejoDeSesion.obtenerFechaHoraInternet()
-        if (fechaServidor != null) {
-            val urlHorario = BuildURLmovil.getMostrarHorarios(context) + "&fecha=${dateFormatter.format(fechaServidor)}"
-            withContext(Dispatchers.IO) {
-                try {
-                    val client = OkHttpClient()
-                    val request = Request.Builder().url(urlHorario).build()
-                    val response = client.newCall(request).execute()
-                    val jsonBody = response.body?.string()?.replace("\uFEFF", "")
-                    val json = JSONObject(jsonBody ?: "")
-                    val dataArray = json.getJSONArray("dataHorario")
-                    if (dataArray.length() > 0) {
-                        val item = dataArray.getJSONObject(0)
-                        horaInicioHorario.intValue = item.optInt("N_HORINI", 0)
-                        horaFinHorario.intValue = item.optInt("N_HORFIN", 0)
+            ScrollView {
+                VStack(spacing: 5) {
+                    let tLogo = AuthManager.shared.getUserCredentials().tLogo
+                    if !tLogo.isEmpty,
+                       tLogo.lowercased() != "null",
+                       let url = URL(string: tLogo),
+                       let data = try? Data(contentsOf: url),
+                       let uiImage = UIImage(data: data) {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 260, height: 130)
+                            .padding(.top, -20)
+                            .padding(.bottom, -20)
+
+                    } else if let logoCliente = ImagenesMovil.logoCliente {
+                        logoCliente
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 260, height: 130)
+                            .padding(.top, -20)
+                            .padding(.bottom, -20)
                     }
-                } catch (_: Exception) { }
-            }
-        }
-    }
 
-    // Necesario para la URL, mantener la lógica de fechaSeleccionada
-    val fechaSeleccionada = remember { mutableStateOf("") }
-    LaunchedEffect(refreshTrigger.value) {
-        if (fechaSeleccionada.value.isEmpty()) {
-            val fechaServidor = ManejoDeSesion.obtenerFechaHoraInternet()
-            if (fechaServidor != null) {
-                val formateador = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-                fechaSeleccionada.value = formateador.format(fechaServidor)
-            } else {
-                fechaSeleccionada.value = "0000-00-00"
-            }
-        }
-    }
-
-    // Muestra la fecha que se está usando para consultar los fichajes del día
-    Log.d("RecuadroFichajesDia", "Fecha usada para la petición: ${fechaSeleccionada.value}")
-
-    val (_, _, xEmpleadoRaw) = AuthManager.getUserCredentials(context)
-    val xEmpleado = xEmpleadoRaw ?: "SIN_EMPLEADO"
-
-    val fichajesTexto by produceState(
-        initialValue = emptyList<FichajeVisual>(),
-        key1 = Triple(fechaSeleccionada.value, xEmpleado, refreshTrigger.value)
-    ) {
-        value = try {
-            withContext(Dispatchers.IO) {
-                val client = OkHttpClient()
-                val urlFichajes = BuildURLmovil.getMostrarFichajes(context) + "&fecha=${fechaSeleccionada.value}"
-                // Muestra la URL completa que se usa para obtener los fichajes
-                Log.d("RecuadroFichajesDia", "URL completa invocada: $urlFichajes")
-                val request = Request.Builder().url(urlFichajes).build()
-                val response = client.newCall(request).execute()
-                val responseBody = response.body?.string()?.replace("\uFEFF", "")
-                // Muestra la respuesta del servidor con los fichajes recibidos
-                Log.d("RecuadroFichajesDia", "Respuesta desde consultarFichajeExterno (URL: ${response.request.url}): $responseBody")
-
-                if (!response.isSuccessful || responseBody.isNullOrEmpty()) {
-                    Log.e("RecuadroFichajesDia", "Error: ${response.code}")
-                    emptyList()
-                } else {
-                    try {
-                        val json = JSONObject(responseBody)
-                        val fichajesArray = json.getJSONArray("dataFichajes")
-
-                        buildList {
-                            for (i in 0 until fichajesArray.length()) {
-                                val item = fichajesArray.getJSONObject(i)
-                                val nMinEntStr = item.optString("nMinEnt", "").trim()
-                                val nMinSalStr = item.optString("nMinSal", "").trim()
-                                val nMinEnt = nMinEntStr.toIntOrNull()
-                                val nMinSal = nMinSalStr.toIntOrNull()
-                                val lcumEnt = if (item.has("lCumEnt")) item.getBoolean("lCumEnt").toString() else ""
-                                val lcumSal = if (item.has("lCumSal")) item.getBoolean("lCumSal").toString() else ""
-
-                                // Registro de valores individuales
-                                // Muestra los valores obtenidos para cada fichaje (entrada, salida y cumplimiento)
-                                Log.d("RecuadroFichajesDia", "Fichaje $i → nMinEnt: $nMinEnt, nMinSal: $nMinSal, LCUMENT: $lcumEnt, LCUMSAL: $lcumSal")
-
-                                fun minutosAHora(minutos: Int?): String {
-                                    return if (minutos != null) {
-                                        val horas = minutos / 60
-                                        val mins = minutos % 60
-                                        String.format(Locale.getDefault(), "%02d:%02d", horas, mins)
-                                    } else {
-                                        "??"
-                                    }
-                                }
-                                val horaEntrada = minutosAHora(nMinEnt)
-                                val horaSalida = minutosAHora(nMinSal)
-                                add(FichajeVisual(horaEntrada, horaSalida, lcumEnt, lcumSal))
-                            }
+                    MiHorarioView()
+                    Spacer().frame(height: 40)
+                    
+                    BotonesFichajeView(
+                        webView: webView,
+                        onFichaje: { tipo in
+                            print("✅ Fichaje completado: \(tipo)")
+                        },
+                        onShowAlert: { mensaje in
+                            print("⚠️ Alerta mostrada al usuario: \(mensaje)")
                         }
-                    } catch (e: Exception) {
-                        // Informa que hubo un error al parsear el JSON de los fichajes
-                        Log.e("RecuadroFichajesDia", "Error al parsear JSON: ${e.message}")
-                        emptyList()
-                    }
-                }
-            }
-        } catch (e: Exception) {
-            // Informa de una excepción general al obtener los fichajes
-            Log.e("RecuadroFichajesDia", "Excepción al obtener fichajes: ${e.message}")
-            emptyList()
-        }
-    }
-
-    val calendar = Calendar.getInstance()
-    val datePickerDialog = DatePickerDialog(
-        context,
-        { _, year, month, dayOfMonth ->
-            val nuevaFecha = Calendar.getInstance().apply {
-                set(year, month, dayOfMonth)
-            }
-            fechaSeleccionada.value = dateFormatter.format(nuevaFecha.time)
-        },
-        calendar.get(Calendar.YEAR),
-        calendar.get(Calendar.MONTH),
-        calendar.get(Calendar.DAY_OF_MONTH)
-    )
-
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "Fichajes Día",
-            color = Color(0xFF7599B6),
-            fontSize = 25.sp,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.offset(y = (-20).dp)
-        )
-
-        val sdfEntrada = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        val sdfSalida = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-        val iconColor = Color(0xFF7599B6)
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .offset(y = (-15).dp)
-                .padding(horizontal = 16.dp)
-        ) {
-            IconButton(onClick = { datePickerDialog.show() }) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_calendario),
-                    contentDescription = "Seleccionar fecha",
-                    modifier = Modifier.size(26.dp),
-                    tint = iconColor
-                )
-            }
-            IconButton(onClick = {
-                val actual = sdfEntrada.parse(fechaSeleccionada.value)
-                val anterior = Calendar.getInstance().apply {
-                    time = actual ?: Date()
-                    add(Calendar.DAY_OF_MONTH, -1)
-                }
-                fechaSeleccionada.value = sdfEntrada.format(anterior.time)
-            }) {
-                Icon(
-                    painter = painterResource(id = R.drawable.hacia_atras),
-                    contentDescription = "Día anterior",
-                    modifier = Modifier.size(26.dp),
-                    tint = iconColor
-                )
-            }
-            Text(
-                text = try {
-                    val date = sdfEntrada.parse(fechaSeleccionada.value)
-                    sdfSalida.format(date ?: Date())
-                } catch (_: Exception) {
-                    fechaSeleccionada.value
-                },
-                color = Color.Gray,
-                fontSize = 22.sp,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.weight(1f)
-            )
-            IconButton(onClick = {
-                val actual = sdfEntrada.parse(fechaSeleccionada.value)
-                val siguiente = Calendar.getInstance().apply {
-                    time = actual ?: Date()
-                    add(Calendar.DAY_OF_MONTH, 1)
-                }
-                fechaSeleccionada.value = sdfEntrada.format(siguiente.time)
-            }) {
-                Icon(
-                    painter = painterResource(id = R.drawable.hacia_delante),
-                    contentDescription = "Día siguiente",
-                    modifier = Modifier.size(26.dp),
-                    tint = iconColor
-                )
-            }
-            IconButton(onClick = {
-                CoroutineScope(Dispatchers.IO).launch {
-                    val fechaServidor = ManejoDeSesion.obtenerFechaHoraInternet()
-                    fechaServidor?.let {
-                        val nuevaFecha = dateFormatter.format(it)
-                        withContext(Dispatchers.Main) {
-                            fechaSeleccionada.value = nuevaFecha
-                        }
-                    }
-                }
-            }) {
-                Image(
-                    painter = painterResource(id = R.drawable.reload),
-                    contentDescription = "Fecha actual",
-                    modifier = Modifier.size(76.dp),
-                    contentScale = ContentScale.Fit
-                )
-            }
-        }
-
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .offset(y = (-15).dp)
-                .background(Color.White)
-                .padding(10.dp)
-                .align(Alignment.CenterHorizontally),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            if (fichajesTexto.isNotEmpty()) {
-                fichajesTexto.forEach { fichaje ->
-                    val colorEntrada = when (fichaje.lcumEnt) {
-                        "false" -> Color.Red
-                        "true" -> Color(0xFF449B1B)
-                        else -> Color(0xFF7599B6)
-                    }
-                    val colorSalida = when (fichaje.lcumSal) {
-                        "false" -> Color.Red
-                        "true" -> Color(0xFF449B1B)
-                        else -> Color(0xFF7599B6)
-                    }
-                    Row(modifier = Modifier.align(Alignment.CenterHorizontally)) {
-                        Text(
-                            text = "${fichaje.entrada} - ",
-                            fontSize = 23.sp,
-                            color = colorEntrada
-                        )
-                        Text(
-                            text = fichaje.salida,
-                            fontSize = 23.sp,
-                            color = colorSalida
-                        )
-                    }
-                }
-            } else {
-                Text(
-                    text = "No hay fichajes hoy",
-                    fontSize = 23.sp,
-                    color = Color.Gray
-                )
-            }
-        }
-    }
-}
-
-
-// --- Nueva clase de datos para avisos ---
-data class AvisoItem(val titulo: String, val detalle: String, val url: String?)
-
-@Composable
-fun AlertasDiarias(
-    onAbrirWebView: (String) -> Unit,
-    hideCuadroParaFichar: () -> Unit,
-    refreshTrigger: MutableState<Long>
-) {
-    val context = LocalContext.current
-    val expandedStates = remember { mutableStateMapOf<Int, Boolean>() }
-
-    // Forzar fetch inicial
-    LaunchedEffect(Unit) {
-        refreshTrigger.value = System.currentTimeMillis()
-    }
-
-    // Nuevo: State para avisos y scope estable
-    val coroutineScope = rememberCoroutineScope()
-    val avisosState = remember { mutableStateOf<List<AvisoItem>>(emptyList()) }
-
-    LaunchedEffect(refreshTrigger.value) {
-        coroutineScope.launch(Dispatchers.IO) {
-            try {
-                val urlAlertas = BuildURLmovil.getMostrarAlertas(context)
-                Log.d("AlertasDiarias", "URL de alertas: $urlAlertas")
-                val client = OkHttpClient()
-                // Usar siempre el dominio correcto definido en BuildURL.getHost(context)
-                val dominio = BuildURLmovil.getHost(context)
-                val cookie = CookieManager.getInstance()
-                    .getCookie(dominio) ?: ""
-                val request = Request.Builder()
-                    .url(urlAlertas)
-                    .addHeader("Cookie", cookie)
-                    .build()
-                val response = client.newCall(request).execute()
-                val jsonBody = response.body?.string()
-                Log.d("JSONAlertas", "JSON crudo recibido: $jsonBody")
-                val json = JSONObject(jsonBody ?: "")
-                val dataArray = json.optJSONArray("dataAvisos")
-                if (dataArray != null) {
-                    Log.d("JSONAlertas", "dataAvisos length = ${dataArray.length()}")
-                    if (dataArray.length() > 0) {
-                        val nuevaLista = mutableListOf<AvisoItem>()
-                        for (i in 0 until dataArray.length()) {
-                            val item = dataArray.getJSONObject(i)
-                            val dAviso = item.optString("D_AVISO", "Sin aviso")
-                            val tAviso = item.optString("T_AVISO", "")
-                            val tUrl = item.optString("T_URL", "").takeIf { it.isNotBlank() && it != "null" }
-                            Log.d("JSONAlertas", "[$i] D_AVISO: $dAviso")
-                            Log.d("JSONAlertas", "[$i] T_AVISO: $tAviso")
-                            Log.d("JSONAlertas", "[$i] T_URL: $tUrl")
-                            nuevaLista.add(AvisoItem(dAviso, tAviso, tUrl))
-                        }
-                        avisosState.value = nuevaLista
-                    } else {
-                        Log.d("JSONAlertas", "Array 'dataAvisos' está presente pero vacío")
-                        avisosState.value = listOf(AvisoItem("No hay alertas disponibles", "", null))
-                    }
-                } else {
-                    Log.d("JSONAlertas", "Array 'dataAvisos' es null")
-                    avisosState.value = listOf(AvisoItem("No hay alertas disponibles", "", null))
-                }
-            } catch (e: Exception) {
-                Log.e("AlertasDiarias", "Error obteniendo alertas: ${e.message}")
-                avisosState.value = listOf(AvisoItem("Error al cargar alertas", "", null))
-            }
-        }
-    }
-
-    // Refresco automático cada 10 minutos
-    LaunchedEffect(true) {
-        while (true) {
-            delay(10 * 60 * 1000)
-            refreshTrigger.value = System.currentTimeMillis()
-        }
-    }
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp),
-        border = BorderStroke(1.dp, Color.LightGray),
-        shape = RoundedCornerShape(4.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
-    ) {
-        Column(modifier = Modifier.padding(8.dp)) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color.White)
-                    .padding(8.dp)
-            ) {
-                Text(
-                    text = "Avisos / Alertas",
-                    color = Color(0xFF7599B6),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 23.sp,
-                    modifier = Modifier.align(Alignment.CenterStart)
-                )
-            }
-
-            Column(modifier = Modifier.padding(top = 8.dp)) {
-                if (avisosState.value.isEmpty()) {
-                    Text(
-                        text = "Cargando alertas...",
-                        color = Color.Gray,
-                        modifier = Modifier.padding(8.dp)
                     )
-                }
-                avisosState.value.forEachIndexed { index, aviso ->
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 4.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .border(1.dp, Color.LightGray)
-                                .clickable {
-                                    expandedStates[index] = expandedStates[index] != true
-                                }
-                                .padding(8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = if (expandedStates[index] == true) Icons.Default.Remove else Icons.Default.Add,
-                                contentDescription = "Expandir",
-                                modifier = Modifier.size(20.dp),
-                                tint = Color(0xFF7599B6)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = aviso.titulo,
-                                fontSize = 18.sp,
-                                color = Color(0xFF7599B6),
-                                modifier = Modifier.weight(1f)
-                            )
-                            if (!aviso.url.isNullOrEmpty()) {
-                                val context = LocalContext.current
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                                    contentDescription = "Redireccionar",
-                                    modifier = Modifier
-                                        .size(20.dp)
-                                        .clickable {
-                                            CoroutineScope(Dispatchers.Main).launch {
-                                                onAbrirWebView(BuildURLmovil.getHost(context).trimEnd('/') + "/" + aviso.url.trimStart('/'))
-                                                delay(1000)
-                                                hideCuadroParaFichar()
-                                            }
-                                        },
-                                    tint = Color(0xFF7599B6)
-                                )
-                            }
-                        }
-                        AnimatedVisibility(visible = expandedStates[index] == true) {
-                            Column(modifier = Modifier.padding(8.dp)) {
-                                OutlinedTextField(
-                                    value = aviso.detalle,
-                                    onValueChange = {},
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .heightIn(min = 80.dp),
-                                    readOnly = true,
-                                    label = { Text("Detalle del aviso") }
-                                )
-                            }
-                        }
+                    Spacer().frame(height: 40)
+                    
+                    @State var refreshTrigger = 0
+                    
+                    RecuadroFichajesDia(refreshTrigger: $refreshTrigger)
+                    Spacer().frame(height: 40)
+                    
+                    AlertasDiariasView(
+                        onAbrirWebView: { url in
+                            let jsCode = "window.location.href = '\(url)';"
+                            webView.evaluateJavaScript(jsCode)
+                        },
+                        hideCuadroParaFichar: {
+                            // No se requiere acción adicional en esta vista, se deja vacío
+                        },
+                        refreshTrigger: .constant(0)
+                    )
+                    .padding(.bottom, 12)
+                    
+                    if let logoDev = ImagenesMovil.logoDesarrolladora {
+                        logoDev
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 200, height: 75)
                     }
                 }
+                .padding()
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color.white)
+            .zIndex(2)
+            
+            BarraNavBottom(webView: webView, mostrarSolapa: $mostrarSolapa)
+        }
+    }
+}
+
+// Mark: Barra de navegación del bottom
+struct BarraNavBottom: View {
+    let webView: WKWebView
+    @Binding var mostrarSolapa: Bool
+
+    var body: some View {
+        ZStack {
+            Color(red: 0xE2 / 255.0, green: 0xE4 / 255.0, blue: 0xE5 / 255.0)
+
+            HStack(spacing: 0) {
+                Spacer()
+                Button {
+                    mostrarSolapa = true
+                } label: {
+                    Image("ic_home32_2")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(height: 36)
+                }
+                Spacer()
+                Button {
+                    mostrarSolapa = false
+                    let js = "window.location.href = '\(BuildURLMovil.consultarFichaje())';"
+                    webView.evaluateJavaScript(js)
+                } label: {
+                    Image("ic_fichajes32")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(height: 36)
+                }
+                Spacer()
+                Button {
+                    mostrarSolapa = false
+                    let js = "window.location.href = '\(BuildURLMovil.consultarIncidencia())';"
+                    webView.evaluateJavaScript(js)
+                } label: {
+                    Image("ic_incidencia32")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(height: 36)
+                }
+                Spacer()
+                Button {
+                    mostrarSolapa = false
+                    let js = "window.location.href = '\(BuildURLMovil.consultarHorarios())';"
+                    webView.evaluateJavaScript(js)
+                } label: {
+                    Image("ic_horario32")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(height: 36)
+                }
+                Spacer()
+                Button {
+                    mostrarSolapa = false
+                    let js = "window.location.href = '\(BuildURLMovil.consultarSolicitudes())';"
+                    webView.evaluateJavaScript(js)
+                } label: {
+                    Image("solicitudes32")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(height: 36)
+                }
+                Spacer()
+            }
+        }
+        .frame(height: 50)
+        .background(
+            GeometryReader { geometry in
+                VStack(spacing: 0) {
+                    Spacer()
+                    Color(red: 0xE2 / 255.0, green: 0xE4 / 255.0, blue: 0xE5 / 255.0)
+                        .frame(height: geometry.safeAreaInsets.bottom)
+                }
+                .edgesIgnoringSafeArea(.bottom)
+            }
+        )
+    }
+}
+
+// MARK: Funcion que se encarga de mostrar los horarios del usuario logeado
+struct MiHorarioView: View {
+    @State private var fechaFormateada: String = "Cargando..."
+    @State private var horarioTexto: String = "Cargando horario..."
+
+    var body: some View {
+        VStack(spacing: 10) {
+            Text(fechaFormateada)
+                .foregroundColor(Color(red: 0.46, green: 0.60, blue: 0.71))
+                .font(.system(size: 22, weight: .bold))
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity)
+
+            Text(horarioTexto)
+                .foregroundColor(
+                    horarioTexto.contains("Error") || horarioTexto.contains("No hay")
+                    ? .red
+                    : Color(red: 0.46, green: 0.60, blue: 0.71)
+                )
+                .font(.title2)
+                .fontWeight(.bold)
+                .frame(maxWidth: .infinity)
+                .multilineTextAlignment(.center)
+        }
+        .padding(.horizontal, 12)
+        .padding(.bottom, 12)
+        .frame(maxWidth: .infinity)
+        .background(Color.white)
+        .overlay(
+            RoundedRectangle(cornerRadius: 0)
+                .stroke(Color(red: 192/255, green: 192/255, blue: 192/255), lineWidth: 1)
+        )
+        .task {
+            await cargarHorario()
+        }
+    }
+
+    func cargarHorario() async {
+        let formateadorServidor = DateFormatter()
+        formateadorServidor.dateFormat = "yyyy-MM-dd"
+        let formateadorTexto = DateFormatter()
+        formateadorTexto.locale = Locale(identifier: "es_ES")
+        formateadorTexto.dateFormat = "EEEE, d 'de' MMMM 'de' yyyy"
+
+        do {
+            let fecha = try await ManejoDeSesion.shared.obtenerFechaHoraInternetAsync()
+            let fechaFormateadaTexto = formateadorTexto.string(from: fecha).capitalized
+            let fechaStr = formateadorServidor.string(from: fecha)
+            let urlString = BuildURLMovil.getURLHorario() + "&fecha=\(fechaStr)"
+            print("📡 URL consultada para el horario: \(urlString)")
+
+            fechaFormateada = fechaFormateadaTexto
+
+            guard let url = URL(string: urlString) else {
+                horarioTexto = "URL inválida"
+                return
+            }
+
+            let (data, response) = try await URLSession.shared.data(from: url)
+            if let httpResponse = response as? HTTPURLResponse {
+                print("🔁 Código de estado HTTP: \(httpResponse.statusCode)")
+            }
+
+            let rawString = String(data: data, encoding: .utf8)?
+                .replacingOccurrences(of: "\u{feff}", with: "")
+
+            guard let cleanedData = rawString?.data(using: .utf8) else {
+                horarioTexto = "Error al limpiar datos"
+                return
+            }
+
+            let jsonObject = try JSONSerialization.jsonObject(with: cleanedData)
+            print("📦 JSON bruto recibido: \(jsonObject)")
+
+            guard let json = jsonObject as? [String: Any] else {
+                print("❌ Error: JSON no es un diccionario")
+                horarioTexto = "Error al procesar datos"
+                return
+            }
+
+            guard let dataArray = json["dataHorario"] as? [[String: Any]], let item = dataArray.first else {
+                print("⚠️ No se encontró 'dataHorario' o estaba vacío")
+                horarioTexto = "No Horario"
+                return
+            }
+
+            guard let horaIniNum = item["N_HORINI"] as? NSNumber,
+                  let horaFinNum = item["N_HORFIN"] as? NSNumber else {
+                print("⚠️ Campos N_HORINI o N_HORFIN no disponibles")
+                horarioTexto = "No Horario"
+                return
+            }
+
+            let horaIni = horaIniNum.intValue
+            let horaFin = horaFinNum.intValue
+
+            if horaIni == 0 && horaFin == 0 {
+                print("⚠️ Ambos valores de horario son 0")
+                horarioTexto = "No Horario"
+                return
+            }
+
+            print("🕒 Hora inicio (N_HORINI): \(horaIni) minutos")
+            print("🕒 Hora fin (N_HORFIN): \(horaFin) minutos")
+
+            func minutosAHora(_ minutos: Int) -> String {
+                let horas = minutos / 60
+                let mins = minutos % 60
+                return String(format: "%02d:%02d", horas, mins)
+            }
+
+            let horaFormateada = "\(minutosAHora(horaIni)) - \(minutosAHora(horaFin))"
+            horarioTexto = horaFormateada
+            print("🕘 Horario formateado: \(horaFormateada)")
+
+        } catch {
+            horarioTexto = "Error al obtener horario"
         }
     }
 }
 
 
-// Mensaje de alerta cuando se le da a uno de los botones de fichar
-@Composable
-fun MensajeAlerta(
-    tipo: String = "ENTRADA",
-    onClose: () -> Unit
-) {
-    val currentDateTime = SimpleDateFormat("dd/MM/yyyy HH:mm'h'", Locale.getDefault()).format(Date())
+// MARK: Vista personalizada para mostrar mensajes de alerta de fichaje
+struct MensajeAlerta: View {
+    let tipo: String
+    let onClose: () -> Void
 
-    val mensaje = when (tipo.uppercase()) {
-        "ENTRADA" -> "Fichaje de Entrada realizado correctamente"
-        "SALIDA" -> "Fichaje de Salida realizado correctamente"
-        "PROBLEMA GPS" -> "No se detecta la geolocalización gps. Por favor, active la geolocalización gps para poder fichar y vuelvalo a intentar en unos segundos."
-        "PROBLEMA INTERNET" -> "El dispositivo no está conectado a la red. Revise su conexión a Internet."
-        "POSIBLE UBI FALSA" -> "Se detectó una posible ubicación falsa. Reinicie su geolocalización gps y vuelva a intentarlo en unos minutos"
-        "VPN DETECTADA" -> "VPN detectada. Desactive la VPN para continuar y vuelva a intentarlo en unos minutos."
-        else -> "Fichaje de $tipo realizado correctamente"
+    private var mensaje: String {
+        switch tipo.uppercased() {
+        case "ENTRADA":
+            return "Fichaje de Entrada realizado correctamente"
+        case "SALIDA":
+            return "Fichaje de Salida realizado correctamente"
+        case "PROBLEMA GPS":
+            return "No se detecta la geolocalización gps. Por favor, active la geolocalización gps para poder fichar y vuelvalo a intentar en unos segundos."
+        case "PROBLEMA INTERNET":
+            return "El dispositivo no está conectado a la red. Revise su conexión a Internet."
+        case "POSIBLE UBI FALSA":
+            return "Se detectó una posible ubicación falsa. Reinicie su geolocalización gps y vuelva a intentarlo en unos minutos"
+        case "VPN DETECTADA":
+            return "VPN detectada. Desactive la VPN para continuar y vuelva a intentarlo en unos minutos."
+        default:
+            return "Fichaje de \(tipo) realizado correctamente"
+        }
     }
 
-    val colorFondo = when (tipo.uppercase()) {
-        "ENTRADA" -> Color(0xFF124672) // Azul oscuro
-        "SALIDA" -> Color(0xFFd7ebfa)  // Azul claro
-        else -> Color(0xFFFF0101)      // Rojo para errores
+    private var colorFondo: Color {
+        switch tipo.uppercased() {
+        case "ENTRADA":
+            return Color(red: 0.07, green: 0.27, blue: 0.45)
+        case "SALIDA":
+            return Color(red: 0.84, green: 0.92, blue: 0.98)
+        default:
+            return Color.red
+        }
     }
 
-    Dialog(
-        onDismissRequest = onClose,
-        properties = DialogProperties(dismissOnClickOutside = true)
-    ) {
-        Surface(
-            shape = RoundedCornerShape(8.dp),
-            border = BorderStroke(1.dp, Color.LightGray),
-            color = Color.White
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
+    private var colorTextoEncabezado: Color {
+        return tipo.uppercased() == "SALIDA" ? Color(red: 0.07, green: 0.27, blue: 0.45) : .white
+    }
 
-                val textoEncabezado = when (tipo.uppercase()) {
-                    "ENTRADA" -> "ENTRADA"
-                    "SALIDA" -> "SALIDA"
-                    else -> "ERROR DE FICHAJE"
-                }
+    private var textoEncabezado: String {
+        switch tipo.uppercased() {
+        case "ENTRADA":
+            return "ENTRADA"
+        case "SALIDA":
+            return "SALIDA"
+        default:
+            return "ERROR DE FICHAJE"
+        }
+    }
 
-                val colorTextoEncabezado = when (tipo.uppercase()) {
-                    "SALIDA" -> Color(0xFF124672)
-                    else -> Color.White
-                }
+    private var fechaHora: String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "es_ES")
+        formatter.dateFormat = "dd/MM/yyyy HH:mm'h'"
+        return formatter.string(from: Date())
+    }
 
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
+    var body: some View {
+        ZStack {
+            Color.clear
+
+            VStack(spacing: 16) {
+                VStack(spacing: 0) {
+                    Text(textoEncabezado)
+                        .foregroundColor(colorTextoEncabezado)
+                        .font(.system(size: 18, weight: .bold))
+                        .frame(maxWidth: .infinity)
+                        .padding(8)
                         .background(colorFondo)
-                        .padding(8.dp)
-                ) {
-                    Text(
-                        text = textoEncabezado,
-                        color = colorTextoEncabezado,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center,
-                        fontSize = 18.sp,
-                        modifier = Modifier.fillMaxWidth()
-                    )
+
+                    VStack(spacing: 16) {
+                        Text(mensaje)
+                            .foregroundColor(.black)
+                            .font(.system(size: 18))
+                            .multilineTextAlignment(.center)
+
+                        Text(fechaHora)
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(.black)
+
+                        Button(action: onClose) {
+                            Text("Cerrar")
+                                .font(.system(size: 18, weight: .bold))
+                                .padding(.horizontal, 40)
+                                .padding(.vertical, 8)
+                                .background(colorFondo)
+                                .foregroundColor(colorTextoEncabezado)
+                                .cornerRadius(6)
+                        }
+                    }
+                    .padding()
                 }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = mensaje,
-                    color = Color.Black,
-                    fontSize = 18.sp,
-                    style = MaterialTheme.typography.bodyMedium,
+                .background(Color.white)
+                .cornerRadius(8)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.gray.opacity(0.3), lineWidth: 1)
                 )
+            }
+            .padding(.horizontal, 32)
+        }
+    }
+}
 
-                Spacer(modifier = Modifier.height(16.dp))
+// MARK: Funcion que se encarga de mostrar los horarios del usuario logeado
+import Combine
+struct BotonesFichajeView: View {
+    let webView: WKWebView?
+    let onFichaje: (String) -> Void
+    let onShowAlert: (String) -> Void
+    @State private var ultimoFichajeTimestamp: TimeInterval = 0
+    @State private var mostrarAlerta = false
+    @State private var mensajeAlerta = ""
 
-                val partes = currentDateTime.split(" ")
-                val fechaSolo = partes.getOrNull(0) ?: ""
-                val horaSolo = partes.getOrNull(1) ?: ""
+    var body: some View {
+        ZStack {
+            VStack {
+                BotonFichaje(tipo: "ENTRADA")
+                // Espacio vertical entre los dos botones
+                Spacer().frame(height: 40)
+                BotonFichaje(tipo: "SALIDA")
+            }
 
-                Text(
-                    text = buildAnnotatedString {
-                        append("$fechaSolo ")
-                        withStyle(
-                            style = SpanStyle(
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 20.sp
-                            )
-                        ) {
-                            append(horaSolo)
-                        }
-                    },
-                    color = Color.Black,
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Box(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Button(
-                        onClick = onClose,
-                        shape = RoundedCornerShape(4.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = colorFondo)
-                    ) {
-                        val colorTextoBoton = when (tipo.uppercase()) {
-                            "SALIDA" -> Color(0xFF124672)
-                            else -> Color.White
-                        }
-
-                        Text(
-                            text = "Cerrar",
-                            fontSize = 18.sp,
-                            color = colorTextoBoton
-                        )
+            if mostrarAlerta {
+                MensajeAlerta(tipo: mensajeAlerta) {
+                    withAnimation {
+                        mostrarAlerta = false
                     }
                 }
+                .transition(.asymmetric(insertion: .scale(scale: 0.9).combined(with: .opacity),
+                                        removal: .opacity))
+                .zIndex(10)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func BotonFichaje(tipo: String) -> some View {
+        Button(action: {
+            Task {
+                guard !SeguridadUtils.shared.isUsingVPN() else {
+                    print("🚫 VPN detectada")
+                    withAnimation {
+                        mensajeAlerta = "VPN DETECTADA"
+                        mostrarAlerta = true
+                    }
+                    return
+                }
+
+                guard SeguridadUtils.shared.isInternetAvailable() else {
+                    print("📡 Sin conexión")
+                    withAnimation {
+                        mensajeAlerta = "PROBLEMA INTERNET"
+                        mostrarAlerta = true
+                    }
+                    return
+                }
+
+                guard SeguridadUtils.shared.hasLocationPermission() else {
+                    print("📍 Sin permiso de localización")
+                    withAnimation {
+                        mensajeAlerta = "PROBLEMA GPS"
+                        mostrarAlerta = true
+                    }
+                    return
+                }
+
+                SeguridadUtils.shared.detectarUbicacionReal { resultado in
+                    switch resultado {
+                    case .gpsDesactivado:
+                        print("📍 GPS desactivado")
+                        withAnimation {
+                            mensajeAlerta = "PROBLEMA GPS"
+                            mostrarAlerta = true
+                        }
+                        return
+                    case .ubicacionSimulada:
+                        print("🛰️ Ubicación simulada detectada")
+                        withAnimation {
+                            mensajeAlerta = "POSIBLE UBI FALSA"
+                            mostrarAlerta = true
+                        }
+                        return
+                    case .ok:
+                        let ahora = Date().timeIntervalSince1970
+                        if ahora - ultimoFichajeTimestamp < 5 {
+                            print("⚠️ Doble fichaje prevenido")
+                            return
+                        }
+                        ultimoFichajeTimestamp = ahora
+
+                        print("✅ Fichaje \(tipo) procesado")
+                        if let webView = webView {
+                            FichajeManager.shared.fichar(tipo: tipo, webView: webView)
+                        }
+                        onFichaje(tipo)
+                        withAnimation {
+                            mensajeAlerta = "Fichaje de tipo \(tipo) realizado correctamente"
+                            mostrarAlerta = true
+                        }
+                    }
+                }
+            }
+        }) {
+            HStack {
+                Image(tipo == "ENTRADA" ? "fichajeentrada32" : "fichajesalida32")
+                    .resizable()
+                    .frame(width: 40, height: 40)
+                    .padding(.leading, 15)
+
+                Text("Fichaje \(tipo.capitalized)")
+                    .font(.system(size: 25, weight: .bold))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .frame(height: 55)
+            .background(Color(red: 0.46, green: 0.60, blue: 0.71))
+            .cornerRadius(10)
+            .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color(red: 0.055, green: 0.282, blue: 0.475), lineWidth: 2))
+            .padding(.horizontal, 20)
+        }
+        .offset(y: tipo == "ENTRADA" ? -20 : -40)
+    }
+}
+
+struct FichajeManager {
+    static let shared = FichajeManager()
+
+    func fichar(tipo: String, webView: WKWebView) {
+        guard let coord = GPSUtils.shared.obtenerCoordenadas() else {
+            print("❌ Coordenadas no disponibles")
+            return
+        }
+
+        let xEmpleado = AuthManager.shared.getUserCredentials().xEmpleado
+        let cDomFicOri = "APP"
+        let cDomTipFic = tipo
+        let tCoordX = coord.latitude
+        let tCoordY = coord.longitude
+
+        let urlString = BuildURLMovil.getURLFichaje() +
+            "&xEmpleado=\(xEmpleado)" +
+            "&cDomTipFic=\(cDomTipFic)" +
+            "&cDomFicOri=\(cDomFicOri)" +
+            "&tCoordX=\(tCoordX)" +
+            "&tCoordY=\(tCoordY)"
+
+        print("📤 URL generada para fichaje: \(urlString)")
+
+        let jsCode = """
+        window.location.href = '\(urlString)';
+        """
+        webView.evaluateJavaScript(jsCode) { (result, error) in
+            if let error = error {
+                print("❌ Error al ejecutar JavaScript para fichaje: \(error)")
+            } else {
+                print("✅ Fichaje lanzado con éxito desde WebView")
             }
         }
     }
 }
 
+
+// MARK: Nos muestras los fichajes que ha hecho la persona en la fecha actual o la que seleccione el usuario
+struct FichajeVisual {
+    let entrada: String
+    let salida: String
+    let lcumEnt: String
+    let lcumSal: String
+}
+
+struct RecuadroFichajesDia: View {
+    @Binding var refreshTrigger: Int
+    @State private var fechaSeleccionada: Date = Date()
+    @State private var fichajes: [FichajeVisual] = []
+    @State private var mostrarCalendario = false
+    @State private var fechaTemporal = Date()
+
+    var body: some View {
+        VStack(spacing: 10) {
+            Text("Fichajes Día")
+                .font(.system(size: 25, weight: .bold))
+                .foregroundColor(Color(red: 0.46, green: 0.60, blue: 0.71))
+                .offset(y: -20)
+
+            HStack(spacing: 10) {
+                // Botón de calendario
+                Button {
+                    fechaTemporal = fechaSeleccionada
+                    mostrarCalendario = true
+                } label: {
+                    Image("ic_calendario")
+                        .resizable()
+                        .frame(width: 26, height: 26)
+                }
+                .sheet(isPresented: $mostrarCalendario) {
+                    VStack(spacing: 20) {
+                        DatePicker(
+                            "Selecciona una fecha",
+                            selection: $fechaTemporal,
+                            displayedComponents: [.date]
+                        )
+                        .datePickerStyle(.graphical)
+                        .labelsHidden()
+                        Button("Aceptar") {
+                            fechaSeleccionada = fechaTemporal
+                            mostrarCalendario = false
+                        }
+                        .font(.headline)
+                        .padding()
+                    }
+                    .padding()
+                }
+                Button {
+                    if let fecha = Calendar.current.date(byAdding: .day, value: -1, to: fechaSeleccionada) {
+                        fechaSeleccionada = fecha
+                    }
+                } label: {
+                    Image("hacia_atras").resizable().frame(width: 26, height: 26)
+                }
+                Text(formattedVisibleDate)
+                    .font(.system(size: 22))
+                    .foregroundColor(.gray)
+                Button {
+                    if let fecha = Calendar.current.date(byAdding: .day, value: 1, to: fechaSeleccionada) {
+                        fechaSeleccionada = fecha
+                    }
+                } label: {
+                    Image("hacia_delante").resizable().frame(width: 26, height: 26)
+                }
+                Button {
+                    Task {
+                        do {
+                            let fecha = try await ManejoDeSesion.shared.obtenerFechaHoraInternetAsync()
+                            fechaSeleccionada = fecha
+                        } catch {
+                            print("❌ Error al obtener la fecha desde el servidor: \(error)")
+                        }
+                    }
+                } label: {
+                    Image("reload").resizable().frame(width: 32, height: 32)
+                }
+            }
+
+            VStack(spacing: 10) {
+                if fichajes.isEmpty {
+                    Text("No hay fichajes hoy")
+                        .font(.system(size: 23))
+                        .foregroundColor(.gray)
+                } else {
+                    ForEach(fichajes.indices, id: \.self) { i in
+                        let f = fichajes[i]
+                        HStack {
+                            Text("\(f.entrada) - ")
+                                .font(.system(size: 23))
+                                .foregroundColor(color(for: f.lcumEnt))
+                            Text(f.salida)
+                                .font(.system(size: 23))
+                                .foregroundColor(color(for: f.lcumSal))
+                        }
+                    }
+                }
+            }
+            .padding(10)
+            .background(Color.white)
+        }
+        .onChange(of: fechaSeleccionada, fetchFichajes)
+        .onChange(of: refreshTrigger, fetchFichajes)
+        .task { fetchFichajes() }
+    }
+
+    var formattedDate: String {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd"
+        return f.string(from: fechaSeleccionada)
+    }
+
+    var formattedVisibleDate: String {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "es_ES")
+        f.dateFormat = "dd/MM/yyyy"
+        return f.string(from: fechaSeleccionada)
+    }
+
+    func color(for valor: String) -> Color {
+        switch valor {
+        case "true": return .green
+        case "false": return .red
+        default: return Color(red: 0.46, green: 0.60, blue: 0.71)
+        }
+    }
+
+    func fetchFichajes() {
+        guard AuthManager.shared.getUserCredentials().xEmpleado.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) != nil else { return }
+        let urlString = BuildURLMovil.getURLFichajesDia() + "&fecha=\(formattedDate)"
+        print("📡 URL consultada para fichajes del día: \(urlString)")
+        guard let url = URL(string: urlString) else { return }
+
+        URLSession.shared.dataTask(with: url) { data, _, _ in
+            guard let data = data,
+                  let raw = String(data: data, encoding: .utf8)?.replacingOccurrences(of: "\u{feff}", with: ""),
+                  let json = try? JSONSerialization.jsonObject(with: Data(raw.utf8)) as? [String: Any],
+                  let arr = json["dataFichajes"] as? [[String: Any]] else {
+                DispatchQueue.main.async { self.fichajes = [] }
+                return
+            }
+
+            let nuevos = arr.compactMap { item -> FichajeVisual? in
+                let entradaMinutos = item["nMinEnt"]
+                let salidaMinutos = item["nMinSal"]
+
+                print("🔍 Datos crudos recibidos: nMinEnt=\(String(describing: entradaMinutos)), nMinSal=\(String(describing: salidaMinutos))")
+
+                func convertirMinutosAHoraTexto(_ valor: Any?) -> String {
+                    if let str = valor as? String, let minutos = Int(str) {
+                        let horas = minutos / 60
+                        let mins = minutos % 60
+                        return String(format: "%02d:%02d h", horas, mins)
+                    } else if let minutos = valor as? Int {
+                        let horas = minutos / 60
+                        let mins = minutos % 60
+                        return String(format: "%02d:%02d h", horas, mins)
+                    } else {
+                        return "??"
+                    }
+                }
+
+                let entrada = convertirMinutosAHoraTexto(entradaMinutos)
+                let salida = convertirMinutosAHoraTexto(salidaMinutos)
+
+                print("🕒 Horas formateadas: entrada=\(entrada), salida=\(salida)")
+
+                return FichajeVisual(
+                    entrada: entrada,
+                    salida: salida,
+                    lcumEnt: (item["lCumEnt"] as? Bool)?.description ?? "",
+                    lcumSal: (item["lCumSal"] as? Bool)?.description ?? ""
+                )
+            }
+
+            DispatchQueue.main.async {
+                self.fichajes = nuevos
+            }
+        }.resume()
+    }
+}
+
+// Helper para sumar días a Date
+fileprivate extension Date {
+    mutating func addDays(_ days: Int) {
+        if let newDate = Calendar.current.date(byAdding: .day, value: days, to: self) {
+            self = newDate
+        }
+    }
+}
+
+
+// MARK: Esta función se encarga de mostrar las Alertas que pueda tener el usuario
+struct AvisoItem: Identifiable {
+    let id = UUID()
+    let titulo: String
+    let detalle: String
+    let url: String?
+}
+
+struct AlertasDiariasView: View {
+    let onAbrirWebView: (String) -> Void
+    let hideCuadroParaFichar: () -> Void
+    @Binding var refreshTrigger: Int
+
+    @State private var avisos: [AvisoItem] = []
+    @State private var expandedStates: [UUID: Bool] = [:]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Avisos / Alertas")
+                .font(.system(size: 23, weight: .bold))
+                .foregroundColor(Color(red: 0.46, green: 0.60, blue: 0.71))
+                .padding(.horizontal, 8)
+
+            if avisos.isEmpty {
+                Text("Cargando alertas...")
+                    .foregroundColor(.gray)
+                    .padding(.horizontal, 8)
+            } else {
+                ForEach(avisos) { aviso in
+                    VStack(spacing: 4) {
+                        HStack {
+                            Image(systemName: expandedStates[aviso.id] == true ? "minus.circle" : "plus.circle")
+                                .resizable()
+                                .frame(width: 20, height: 20)
+                                .foregroundColor(Color(red: 0.46, green: 0.60, blue: 0.71))
+                                .onTapGesture {
+                                    expandedStates[aviso.id] = !(expandedStates[aviso.id] ?? false)
+                                }
+
+                            Text(aviso.titulo)
+                                .font(.system(size: 18))
+                                .foregroundColor(Color(red: 0.46, green: 0.60, blue: 0.71))
+                                .lineLimit(1)
+                                .truncationMode(.tail)
+
+                            Spacer()
+
+                            if let url = aviso.url, !url.isEmpty {
+                                Image(systemName: "arrow.right.circle")
+                                    .resizable()
+                                    .frame(width: 20, height: 20)
+                                    .foregroundColor(Color(red: 0.46, green: 0.60, blue: 0.71))
+                                    .onTapGesture {
+                                        onAbrirWebView(url)
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                                            hideCuadroParaFichar()
+                                        }
+                                    }
+                            }
+                        }
+                        .padding(8)
+                        .background(RoundedRectangle(cornerRadius: 4).stroke(Color.gray.opacity(0.3)))
+
+                        if expandedStates[aviso.id] == true {
+                            Text(aviso.detalle)
+                                .font(.system(size: 16))
+                                .padding(.horizontal, 8)
+                        }
+                    }
+                }
+            }
+        }
+        .padding()
+        .background(Color.white)
+        .cornerRadius(8)
+        .onAppear {
+            fetchAlertas()
+            // refresco automático cada 10 minutos
+            Timer.scheduledTimer(withTimeInterval: 600, repeats: true) { _ in
+                refreshTrigger += 1
+                fetchAlertas()
+            }
+        }
+        .onChange(of: refreshTrigger) {
+            fetchAlertas()
+        }
+    }
+
+    func fetchAlertas() {
+        print("📡 URL_Alertas invocada: \(BuildURLMovil.getURLAlertas())")
+        guard let url = URL(string: BuildURLMovil.getURLAlertas()) else { return }
+
+        var request = URLRequest(url: url)
+        if let cookies = HTTPCookieStorage.shared.cookies(for: url) {
+            let cookieHeader = cookies.map { "\($0.name)=\($0.value)" }.joined(separator: "; ")
+            request.addValue(cookieHeader, forHTTPHeaderField: "Cookie")
+        }
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            guard let data = data,
+                  let jsonString = String(data: data, encoding: .utf8)?
+                      .replacingOccurrences(of: "\u{feff}", with: ""),
+                  let json = try? JSONSerialization.jsonObject(with: Data(jsonString.utf8)) as? [String: Any],
+                  let arr = json["dataAvisos"] as? [[String: Any]]
+            else {
+                DispatchQueue.main.async {
+                    self.avisos = [AvisoItem(titulo: "No hay alertas disponibles", detalle: "", url: nil)]
+                }
+                return
+            }
+
+            let nuevos = arr.map {
+                AvisoItem(
+                    titulo: $0["D_AVISO"] as? String ?? "Sin aviso",
+                    detalle: $0["T_AVISO"] as? String ?? "",
+                    url: ($0["T_URL"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
+                )
+            }
+
+            DispatchQueue.main.async {
+                self.avisos = nuevos.isEmpty
+                    ? [AvisoItem(titulo: "No hay alertas disponibles", detalle: "", url: nil)]
+                    : nuevos
+            }
+        }.resume()
+    }
+}
 
 

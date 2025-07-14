@@ -67,7 +67,7 @@ struct ImagenesMovil {
 // Define URLs base y de login para la WebView
 
 struct WebViewURL {
-    static let host = "https://democontrolhorario.kairos24h.es" // Dominio base de la app
+    static let host = "https://controlhorario.kairos24h.es" // Dominio base de la app
     static let entryPoint = "/index.php" // Punto de entrada PHP
     static let urlUsada = "\(host)\(entryPoint)" // URL combinada
     static let actionLogin = "r=wsExterno/loginExterno" // Acción de login por URL
@@ -101,6 +101,7 @@ struct BuildURLMovil {
     // Acciones de distintas pantallas del sistema (algunas aún no están definidas)
     static let actionForgotPass = "r=site/solicitudRestablecerClave"
     static let actionLogin = "r=site/index"
+    static let actionConsultar = "r=explotacion/consultarExplotacion"
 
     // Métodos para obtener URLs completas con las acciones definidas
     static func getIndex() -> String { getURLUsada() + actionLogin }
@@ -125,7 +126,29 @@ struct BuildURLMovil {
         return "&xGrupo=\(xGrupo)&xEntidad=\(xEntidad)&xEmpleado=\(xEmpleado)&cKiosko=\(cKiosko)&cFicOri=\(cFicOri)"
     }
     
-    // MARK: Aquí se forman las URL que usaremos en nuestra app
+    // MARK: Aquí se forman las URL que usaremos en nuestra app para la barra de navegación
+    static func consultarFichaje() -> String {
+        let url = getURLUsada() + actionConsultar + "&cTipExp=FICHAJE"
+        print("URL_Fichaje generada: \(url)")
+        return url
+    }
+    static func consultarIncidencia() -> String {
+        let url = getURLUsada() + actionConsultar + "&cTipExp=INCIDENCIA&cOpcionVisual=INCBAN"
+        print("URL_Incidencia generada: \(url)")
+        return url
+    }
+    static func consultarHorarios() -> String {
+        let url = getURLUsada() + actionConsultar + "&cTipExp=HORARIO&cModoVisual=HORMEN"
+        print("URL_Horarios generada: \(url)")
+        return url
+    }
+    static func consultarSolicitudes() -> String {
+        let url = getURLUsada() + actionConsultar + "&cTipExp=SOLICITUD"
+        print("URL_Solicitudes generada: \(url)")
+        return url
+    }
+    
+    // MARK: Aquí se forman las URL que usaremos en nuestra app para las funciones
     static func getURLFichaje() -> String { getURLUsada() + actionFichaje + getStaticParams() }
     static func getURLHorario() -> String { getURLUsada() + actionConsultarHorario + getStaticParams() }
     static func getURLFichajesDia() -> String { getURLUsada() + actionConsultarFichajesDia + getStaticParams() }
@@ -133,7 +156,7 @@ struct BuildURLMovil {
     static func getURLExplotacion() -> String { getURLUsada() + actionConsultarExplotacion + getStaticParams() }
 }
 
-// Extensión para comprobar si un String? es nulo o vacío
+// Extensión para comprobar si un String? es nulo o vacíoa
 extension Optional where Wrapped == String {
     var isNilOrEmpty: Bool {
         return self?.isEmpty ?? true
