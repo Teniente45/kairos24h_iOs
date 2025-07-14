@@ -8,6 +8,7 @@
 
 import SwiftUI
 import Reachability
+import CoreLocation
 
 struct PaginaPrincipalViewController: View {
     @State private var usuario: String = ""
@@ -15,6 +16,8 @@ struct PaginaPrincipalViewController: View {
     @State private var mostrarContrasena: Bool = false
     @State private var errorTexto: String = ""
     @State private var navegar: Bool = false
+    @State private var aceptaUbicacion: Bool = false
+    let locationManager = CLLocationManager()
 
     var body: some View {
         NavigationStack {
@@ -44,6 +47,34 @@ struct PaginaPrincipalViewController: View {
 
                     // Mostrar contraseña con switch
                     Toggle("Mostrar contraseña", isOn: $mostrarContrasena)
+
+                    Toggle("Acepto que la app acceda a la ubicación donde ficho", isOn: $aceptaUbicacion)
+                        .onChange(of: aceptaUbicacion) {
+                            if aceptaUbicacion {
+                                let status = locationManager.authorizationStatus
+                                if status == .denied || status == .restricted {
+                                    let alert = UIAlertController(
+                                        title: "Permisos de ubicación",
+                                        message: "Debe aceptar los permisos de ubicación",
+                                        preferredStyle: .alert
+                                    )
+                                    alert.addAction(UIAlertAction(title: "Ir a Ajustes", style: .default, handler: { _ in
+                                        if let appSettings = URL(string: UIApplication.openSettingsURLString) {
+                                            UIApplication.shared.open(appSettings)
+                                        }
+                                    }))
+                                    alert.addAction(UIAlertAction(title: "Cancelar", style: .cancel, handler: { _ in
+                                        aceptaUbicacion = false
+                                    }))
+                                    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                                       let rootVC = windowScene.windows.first?.rootViewController {
+                                        rootVC.present(alert, animated: true)
+                                    }
+                                } else {
+                                    locationManager.requestWhenInUseAuthorization()
+                                }
+                            }
+                        }
 
                     // Etiqueta para mostrar errores
                     if !errorTexto.isEmpty {
@@ -109,6 +140,17 @@ struct PaginaPrincipalViewController: View {
 
         guard !trimmedUsuario.isEmpty && !trimmedPassword.isEmpty else {
             errorTexto = "Por favor, completa ambos campos"
+            return
+        }
+
+        guard aceptaUbicacion else {
+            errorTexto = "Debe aceptar el acceso a la ubicación para continuar."
+            return
+        }
+
+        let authStatus = locationManager.authorizationStatus
+        if authStatus == .denied || authStatus == .restricted {
+            errorTexto = "Permiso de ubicación denegado. Revíselo en Ajustes."
             return
         }
 

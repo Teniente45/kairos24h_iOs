@@ -151,6 +151,19 @@ struct SolapaWebView: View {
             
             BarraNavBottom(webView: webView, mostrarSolapa: $mostrarSolapa)
         }
+        .alert(isPresented: $showLogoutDialog) {
+            Alert(
+                title: Text("¿Quieres cerrar la sesión?"),
+                primaryButton: .destructive(Text("Sí")) {
+                    AuthManager.shared.clearAllUserData()
+                    navegar = true
+                },
+                secondaryButton: .cancel(Text("No"))
+            )
+        }
+        .navigationDestination(isPresented: $navegar) {
+            PaginaPrincipalViewController()
+        }
     }
 }
 
@@ -591,17 +604,17 @@ struct FichajeManager {
         }
 
         let xEmpleado = AuthManager.shared.getUserCredentials().xEmpleado
-        let cDomFicOri = "APP"
-        let cDomTipFic = tipo
-        let tCoordX = coord.latitude
-        let tCoordY = coord.longitude
+        let cFicOri = "APP"
+        let cTipFic = tipo
+        let tGpsLat = coord.latitude
+        let tGpsLon = coord.longitude
 
         let urlString = BuildURLMovil.getURLFichaje() +
             "&xEmpleado=\(xEmpleado)" +
-            "&cDomTipFic=\(cDomTipFic)" +
-            "&cDomFicOri=\(cDomFicOri)" +
-            "&tCoordX=\(tCoordX)" +
-            "&tCoordY=\(tCoordY)"
+            "&cTipFic=\(cTipFic)" +
+            "&cFicOri=\(cFicOri)" +
+            "&tGpsLat=\(tGpsLat)" +
+            "&tGpsLon=\(tGpsLon)"
 
         print("📤 URL generada para fichaje: \(urlString)")
 
