@@ -51,6 +51,19 @@ struct PaginaPrincipalViewController: View {
 
                     Toggle("Acepto que la app acceda a la ubicación donde ficho", isOn: $aceptaUbicacion)
                         .onChange(of: aceptaUbicacion) {
+                            if !aceptaUbicacion {
+                                let alert = UIAlertController(
+                                    title: "Permiso necesario",
+                                    message: "Es necesario que de su permiso para poder iniciar sesión en nuestra aplicación de control horario.",
+                                    preferredStyle: .alert
+                                )
+                                alert.addAction(UIAlertAction(title: "Aceptar", style: .default))
+                                if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                                   let rootVC = windowScene.windows.first?.rootViewController {
+                                    rootVC.present(alert, animated: true)
+                                }
+                                return
+                            }
                             if aceptaUbicacion {
                                 let status = locationManager.authorizationStatus
                                 if status == .denied || status == .restricted {
@@ -72,7 +85,7 @@ struct PaginaPrincipalViewController: View {
                                         rootVC.present(alert, animated: true)
                                     }
                                 } else {
-                                    locationManager.requestWhenInUseAuthorization()
+                                    GPSUtils.shared.solicitarPermisoYComenzarActualizacion()
                                 }
                             }
                         }

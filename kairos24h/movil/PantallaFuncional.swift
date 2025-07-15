@@ -108,15 +108,17 @@ struct SolapaWebView: View {
                     MiHorarioView()
                     Spacer().frame(height: 40)
                     
-                    BotonesFichajeView(
-                        webView: webView,
-                        onFichaje: { tipo in
-                            print("✅ Fichaje completado: \(tipo)")
-                        },
-                        onShowAlert: { mensaje in
-                            print("⚠️ Alerta mostrada al usuario: \(mensaje)")
-                        }
-                    )
+                    if AuthManager.shared.getUserCredentials().lBotonesFichajeMovil.uppercased() != "N" {
+                        BotonesFichajeView(
+                            webView: webView,
+                            onFichaje: { tipo in
+                                print("✅ Fichaje completado: \(tipo)")
+                            },
+                            onShowAlert: { mensaje in
+                                print("⚠️ Alerta mostrada al usuario: \(mensaje)")
+                            }
+                        )
+                    }
                     Spacer().frame(height: 40)
                     
                     @State var refreshTrigger = 0
@@ -566,7 +568,7 @@ struct BotonesFichajeView: View {
                         }
                         onFichaje(tipo)
                         withAnimation {
-                            mensajeAlerta = "Fichaje de tipo \(tipo) realizado correctamente"
+                            mensajeAlerta = tipo
                             mostrarAlerta = true
                         }
                     }

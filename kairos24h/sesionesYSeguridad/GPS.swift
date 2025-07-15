@@ -17,6 +17,9 @@ class GPSUtils: NSObject, CLLocationManagerDelegate {
         super.init()
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
+    }
+
+    func solicitarPermisoYComenzarActualizacion() {
         locationManager.requestWhenInUseAuthorization()
         locationManager.startUpdatingLocation()
     }
@@ -37,6 +40,8 @@ class GPSUtils: NSObject, CLLocationManagerDelegate {
         print("GPSUtils - Error al obtener ubicación: \(error.localizedDescription)")
     }
     func obtenerCoordenadas() -> CLLocationCoordinate2D? {
-        return currentLocation?.coordinate
+        let coord = currentLocation?.coordinate
+        print("📍 Coordenadas actuales: \(String(describing: coord))")
+        return coord
     }
 }
