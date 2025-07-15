@@ -28,7 +28,8 @@ struct PaginaPrincipalViewController: View {
                         logo
                             .resizable()
                             .scaledToFit()
-                            .frame(width: 200, height: 200)
+                            .frame(width: UIScreen.main.bounds.width * 0.75, height: UIScreen.main.bounds.width * 0.75)
+                            .padding(.vertical, -90)
                     }
 
                     // Campo de usuario
@@ -80,7 +81,7 @@ struct PaginaPrincipalViewController: View {
                     if !errorTexto.isEmpty {
                         Text(errorTexto)
                             .foregroundColor(.red)
-                            .font(.system(size: 14))
+                            .font(.system(size: UIScreen.main.bounds.width * 0.035))
                             .multilineTextAlignment(.center)
                     }
 
@@ -97,24 +98,23 @@ struct PaginaPrincipalViewController: View {
                     // Botón de "¿Olvidaste la contraseña?"
                     Button(action: handleForgotPassword) {
                         Text("¿Olvidaste la contraseña?")
-                            .font(.system(size: 14))
+                            .font(.system(size: UIScreen.main.bounds.width * 0.035))
                             .foregroundColor(Color(red: 117/255, green: 153/255, blue: 182/255))
                     }
 
-                    Spacer().frame(height: 8)
 
                     Text("""
                         Para control de calidad y aumentar la seguridad de nuestro sistema, todos los accesos, acciones, consultas o cambios (Trazabilidad) que realice dentro de Kairos24h serán almacenados.
                         Les recordamos que la Empresa podrá auditar los medios técnicos que pone a disposición del Trabajador para el desempeño de sus funciones.
                         """)
                         .foregroundColor(Color(red: 68/255, green: 112/255, blue: 148/255))
-                        .font(.system(size: 14))
+                        .font(.system(size: UIScreen.main.bounds.width * 0.035))
                         .multilineTextAlignment(.leading)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.top, 10)
+                        .padding(.top, UIScreen.main.bounds.height * 0.015)
                 }
-                .padding(.horizontal, 32)
-                .padding(.top, 40)
+                .padding(.horizontal, UIScreen.main.bounds.width * 0.08)
+                .padding(.top, UIScreen.main.bounds.height * 0.05)
             }
             .navigationBarHidden(true)
             .onTapGesture {

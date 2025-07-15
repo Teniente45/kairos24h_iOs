@@ -27,10 +27,16 @@ struct ImagenesMovil {
 
     // Estilos de tamaño para los logos
     struct LogoEstilos {
-        // Tamaño del logo del cliente
-        static let logoSize: CGSize = CGSize(width: 280, height: 280)
-        // Tamaño del logo de la desarrolladora
-        static let logoDesarrolladoraSize: CGSize = CGSize(width: 200, height: 75)
+        // Tamaño del logo del cliente (proporcional al ancho de pantalla)
+        static let logoSize: CGSize = CGSize(
+            width: UIScreen.main.bounds.width * 0.7,
+            height: UIScreen.main.bounds.width * 0.7
+        )
+        // Tamaño del logo de la desarrolladora (proporcional al ancho de pantalla, mantiene proporción 200x75)
+        static let logoDesarrolladoraSize: CGSize = CGSize(
+            width: UIScreen.main.bounds.width * 0.5,
+            height: UIScreen.main.bounds.width * 0.1875
+        )
     }
 
     // Carga remota del logo del cliente (si viene del backend)

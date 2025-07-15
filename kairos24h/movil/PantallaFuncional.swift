@@ -22,7 +22,7 @@ struct CabeceraUsuarioView: View {
                 HStack(spacing: 8) {
                     Image("icono_usuario")
                         .resizable()
-                        .frame(width: 24, height: 24)
+                        .frame(width: UIScreen.main.bounds.width * 0.06, height: UIScreen.main.bounds.width * 0.06)
 
                     Text(AuthManager.shared.getUserCredentials().usuario.uppercased())
                         .foregroundColor(Color(red: 0.46, green: 0.60, blue: 0.71))
@@ -36,7 +36,7 @@ struct CabeceraUsuarioView: View {
                 }) {
                     Image("ic_cerrar32")
                         .resizable()
-                        .frame(width: 24, height: 24)
+                        .frame(width: UIScreen.main.bounds.width * 0.06, height: UIScreen.main.bounds.width * 0.06)
                 }
             }
             .padding(.horizontal, 12)
@@ -68,7 +68,7 @@ struct SolapaWebView: View {
     let cUsuario = AuthManager.shared.getUserCredentials().usuario
     
     // Con esto puedo cambiar el tamaño de los iconos de la barra de navegación
-    let iconoBarraInferiorAltura: CGFloat = 36
+    let iconoBarraInferiorAltura: CGFloat = UIScreen.main.bounds.height * 0.04
     
     private func BarraInferiorIcono(nombre: String) -> some View {
         Image(nombre)
@@ -92,7 +92,7 @@ struct SolapaWebView: View {
                         Image(uiImage: uiImage)
                             .resizable()
                             .scaledToFit()
-                            .frame(width: 260, height: 130)
+                            .frame(width: UIScreen.main.bounds.width * 0.65, height: UIScreen.main.bounds.height * 0.15)
                             .padding(.top, -20)
                             .padding(.bottom, -20)
 
@@ -100,7 +100,7 @@ struct SolapaWebView: View {
                         logoCliente
                             .resizable()
                             .scaledToFit()
-                            .frame(width: 260, height: 130)
+                            .frame(width: UIScreen.main.bounds.width * 0.65, height: UIScreen.main.bounds.height * 0.15)
                             .padding(.top, -20)
                             .padding(.bottom, -20)
                     }
@@ -140,7 +140,7 @@ struct SolapaWebView: View {
                         logoDev
                             .resizable()
                             .scaledToFit()
-                            .frame(width: 200, height: 75)
+                            .frame(width: UIScreen.main.bounds.width * 0.65, height: UIScreen.main.bounds.height * 0.15)
                     }
                 }
                 .padding()
@@ -184,7 +184,7 @@ struct BarraNavBottom: View {
                     Image("ic_home32_2")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                        .frame(height: 36)
+                        .frame(height: UIScreen.main.bounds.height * 0.04)
                 }
                 Spacer()
                 Button {
@@ -195,7 +195,7 @@ struct BarraNavBottom: View {
                     Image("ic_fichajes32")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                        .frame(height: 36)
+                        .frame(height: UIScreen.main.bounds.height * 0.04)
                 }
                 Spacer()
                 Button {
@@ -206,7 +206,7 @@ struct BarraNavBottom: View {
                     Image("ic_incidencia32")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                        .frame(height: 36)
+                        .frame(height: UIScreen.main.bounds.height * 0.04)
                 }
                 Spacer()
                 Button {
@@ -217,7 +217,7 @@ struct BarraNavBottom: View {
                     Image("ic_horario32")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                        .frame(height: 36)
+                        .frame(height: UIScreen.main.bounds.height * 0.04)
                 }
                 Spacer()
                 Button {
@@ -228,7 +228,7 @@ struct BarraNavBottom: View {
                     Image("solicitudes32")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                        .frame(height: 36)
+                        .frame(height: UIScreen.main.bounds.height * 0.04)
                 }
                 Spacer()
             }
@@ -576,7 +576,7 @@ struct BotonesFichajeView: View {
             HStack {
                 Image(tipo == "ENTRADA" ? "fichajeentrada32" : "fichajesalida32")
                     .resizable()
-                    .frame(width: 40, height: 40)
+                    .frame(width: UIScreen.main.bounds.width * 0.1, height: UIScreen.main.bounds.width * 0.1)
                     .padding(.leading, 15)
 
                 Text("Fichaje \(tipo.capitalized)")
@@ -584,7 +584,7 @@ struct BotonesFichajeView: View {
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .frame(height: 55)
+            .frame(height: UIScreen.main.bounds.height * 0.07)
             .background(Color(red: 0.46, green: 0.60, blue: 0.71))
             .cornerRadius(10)
             .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color(red: 0.055, green: 0.282, blue: 0.475), lineWidth: 2))
@@ -662,7 +662,7 @@ struct RecuadroFichajesDia: View {
                 } label: {
                     Image("ic_calendario")
                         .resizable()
-                        .frame(width: 26, height: 26)
+                        .frame(width: UIScreen.main.bounds.width * 0.07, height: UIScreen.main.bounds.width * 0.07)
                 }
                 .sheet(isPresented: $mostrarCalendario) {
                     VStack(spacing: 20) {
@@ -687,7 +687,7 @@ struct RecuadroFichajesDia: View {
                         fechaSeleccionada = fecha
                     }
                 } label: {
-                    Image("hacia_atras").resizable().frame(width: 26, height: 26)
+                    Image("hacia_atras").resizable().frame(width: UIScreen.main.bounds.width * 0.07, height: UIScreen.main.bounds.width * 0.07)
                 }
                 Text(formattedVisibleDate)
                     .font(.system(size: 22))
@@ -697,7 +697,7 @@ struct RecuadroFichajesDia: View {
                         fechaSeleccionada = fecha
                     }
                 } label: {
-                    Image("hacia_delante").resizable().frame(width: 26, height: 26)
+                    Image("hacia_delante").resizable().frame(width: UIScreen.main.bounds.width * 0.07, height: UIScreen.main.bounds.width * 0.07)
                 }
                 Button {
                     Task {
@@ -709,7 +709,7 @@ struct RecuadroFichajesDia: View {
                         }
                     }
                 } label: {
-                    Image("reload").resizable().frame(width: 32, height: 32)
+                    Image("reload").resizable().frame(width: UIScreen.main.bounds.width * 0.085, height: UIScreen.main.bounds.width * 0.085)
                 }
             }
 

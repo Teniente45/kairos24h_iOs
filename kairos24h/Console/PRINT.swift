@@ -1,150 +1,75 @@
-/*******************************
- * LOGS DE FICHAR.KT
- *******************************
- *  // print("[DEBUG] Fichar: onCreate iniciado")
- *
- *  // print("[ERROR] Fichar: No se cuenta con el permiso ACCESS_FINE_LOCATION")
- *
- *  // print("[ERROR] Fichar: Ubicación inválida, no se enviará el fichaje")
- *
- *  // print("[DEBUG] Fichar: URL que se va a enviar desde WebView: $urlFichaje")
- *
- *  // print("[ERROR] Fichar: Alerta: $alertTipo")
- *
- *  // print("[ERROR] Fichar: Error de seguridad al acceder a la ubicación: ${e.message}")
- *
- *  // print("[DEBUG] Seguridad: lComGPS=$lComGPS, lComIP=$lComIP, lBotonesFichajeMovil=$lBotonesFichajeMovil")
- *
- *  // print("[WARNING] Seguridad: El fichaje está deshabilitado por GPS: lComGPS=$lComGPS")
- *
- *  // print("[WARNING] Seguridad: El fichaje está deshabilitado por IP: lComIP=$lComIP")
- *
- *  // print("[WARNING] Seguridad: Los botones de fichaje están deshabilitados: lBotonesFichajeMovil=$lBotonesFichajeMovil")
- *
- *  // print("[ERROR] Fichar: GPS desactivado.")
- *
- *  // print("[ERROR] Fichar: No se pudo obtener la ubicación.")
- *
- *  // print("[ERROR] Fichar: Ubicación falsa detectada.")
- *
- *  // print("[ERROR] Fichar: Error obteniendo ubicación: ${e.message}")
- */
-
-/*******************************
- * LOGS DE PANTALLAFUNCIONAL.KT
- *******************************
- * // print("[DEBUG] MiHorario: URL solicitada: $urlHorario")
- *
- * // print("[DEBUG] MiHorario: Respuesta completa del servidor:\n$responseBody")
- *
- * // print("[DEBUG] MiHorario: Valor N_HORINI: $horaIni")
- *
- * // print("[DEBUG] MiHorario: Valor N_HORFIN: $horaFin")
- *
- * // print("[ERROR] MiHorario: Error al parsear JSON: ${e.message}\nResponse body: $responseBody")
- *
- * // print("[ERROR] MiHorario: Error al obtener horario: ${e.message}")
- *
- * // print("[DEBUG] Fichaje: Permiso concedido. Procesando fichaje de: $tipo")
- *
- * // print("[ERROR] Fichaje: webView es null. No se puede fichar.")
- *
- * // print("[DEBUG] Fichaje: Permiso denegado para ACCESS_FINE_LOCATION")
- *
- * // print("[ERROR] Seguridad: Intento de fichaje con VPN activa")
- *
- * // print("[ERROR] Fichar: No hay conexión a Internet")
- *
- * // print("[ERROR] Fichar: No se cuenta con el permiso ACCESS_FINE_LOCATION")
- *
- * // print("[ERROR] Seguridad: GPS desactivado")
- *
- * // print("[ERROR] Seguridad: Ubicación simulada detectada")
- *
- * // print("[WARNING] Fichaje: Fichaje repetido ignorado")
- *
- * // print("[DEBUG] Fichaje: Fichaje Entrada: Permiso concedido. Procesando fichaje de ENTRADA")
- *
- * // print("[DEBUG] Fichaje: Fichaje Salida: Permiso concedido. Procesando fichaje de SALIDA")
- *
- * // print("[DEBUG] RecuadroFichajesDia: Fecha usada para la petición: ${fechaSeleccionada.value}")
- *
- * // print("[DEBUG] RecuadroFichajesDia: URL completa invocada: $urlFichajes")
- *
- * // print("[DEBUG] RecuadroFichajesDia: Respuesta desde consultarFichajeExterno (URL: ${response.request.url}): $responseBody")
- *
- * // print("[DEBUG] RecuadroFichajesDia: Fichaje $i → nMinEnt: $nMinEnt, nMinSal: $nMinSal, LCUMENT: $lcumEnt, LCUMSAL: $lcumSal")
- *
- * // print("[ERROR] RecuadroFichajesDia: Error al parsear JSON: ${e.message}")
- *
- * // print("[ERROR] RecuadroFichajesDia: Error al obtener fichajes: ${e.message}")
- *
- * // print("[DEBUG] AlertasDiarias: URL de alertas: $urlAlertas")
- *
- * // print("[DEBUG] JSONAlertas: D_AVISO: $dAviso")
- *
- * // print("[DEBUG] JSONAlertas: T_AVISO: $tAviso")
- *
- * // print("[DEBUG] JSONAlertas: T_URL: $tUrl")
- *
- * // print("[DEBUG] JSONAlertas: Array 'dataAvisos' vacío o nulo")
- *
- * // print("[ERROR] AlertasDiarias: Error obteniendo alertas: ${e.message}")
- *
- *
- *
 /**
- * *******************************************
- * *********** logica_BB_DD.kt ***************
- * *******************************************
- *
- * // print("[DEBUG] SQLite: Insertando en tabla l_informados: L_INFORMADO=$lInformado, xFichaje=$xFichaje")
- *
- * // print("[DEBUG] modificacionBBDD: Columna cEmpCppExt añadida a l_informados")
- *
- * // print("[DEBUG] modificacionBBDD: Tabla l_informados no existía, creada desde onUpgrade")
- *
- * // print("[DEBUG] FichajeApp: Lógica de reintento automático iniciada correctamente.")
- *
- * // print("[DEBUG] ReintentoFichaje: Preparando reenvío de fichaje con ID=$id")
- *
- * // print("[DEBUG] ReintentoFichaje: Invocando URL: $url")
- *
- * // print("[DEBUG] ReintentoFichaje: Respuesta recibida: $body")
- *
- * // print("[DEBUG] ReintentoFichaje: L_INFORMADO = S → Actualizando ID=$id a informado")
- *
- * // print("[DEBUG] EXPORTACION: Archivo generado en: ${archivo.absolutePath}")
- *
- * // print("[ERROR] EXPORTACION: Error al exportar la tabla $tabla: ${e.message}")
- *
- *
- * *******************************************
- * *********** relojFichajes.kt ***************
- * *******************************************
- *
- * // print("[DEBUG] relojFichajes: Lógica de reintento automático iniciada correctamente.")
- *
- * // print("[DEBUG] FichajeApp: URL generada para fichaje: $url")
- *
- * // print("[DEBUG] FichajeApp: Invocando URL al servidor: $url")
- *
- * // print("[DEBUG] FichajeApp: Respuesta del servidor: $responseText")
- *
- * // print("[DEBUG] SQLite: Registro insertado: xFichaje=${jsonResponse.optString("xFichaje")}, cTipFic=${jsonResponse.optString("cTipFic")}")
- *
- * // print("[DEBUG] FichajeApp: No hay conexión. Fichaje guardado localmente.")
- *
- * // print("[ERROR] Audio: No se encontró el archivo de audio: $nombreArchivo")
- *
- * // print("[ERROR] DB_DUMP")
- *
- *
- * *******************************************
- * *********** paginaLogin.kt ***************
- * *******************************************
- *
- *// print("[DEBUG] Redireccion")
- *
- *
-*/
+
+// Prints del archivo: paginaLogin.swift
+// Print #1: muestra -> "➡️ Autologin detectado, navegando a pantalla secundaria"
+print("➡️ Autologin detectado, navegando a pantalla secundaria")
+// Print #2: muestra -> "✅ Credenciales guardadas:"
+print("✅ Credenciales guardadas:")
+// Print #3: muestra -> "usuario: \(xEmpleado.usuario"
+print("usuario: \(xEmpleado.usuario)")
+// Print #4: muestra -> "password: \(xEmpleado.password"
+print("password: \(xEmpleado.password)")
+// Print #5: muestra -> "xEmpleado: \(xEmpleado.xEmpleado"
+print("xEmpleado: \(xEmpleado.xEmpleado)")
+// Print #6: muestra -> "lComGPS: \(xEmpleado.lComGPS"
+print("lComGPS: \(xEmpleado.lComGPS)")
+// Print #7: muestra -> "lComIP: \(xEmpleado.lComIP"
+print("lComIP: \(xEmpleado.lComIP)")
+// Print #8: muestra -> "lBotonesFichajeMovil: \(xEmpleado.lBotonesFichajeMovil"
+print("lBotonesFichajeMovil: \(xEmpleado.lBotonesFichajeMovil)")
+// Print #9: muestra -> "xEntidad: \(xEmpleado.xEntidad"
+print("xEntidad: \(xEmpleado.xEntidad)")
+// Print #10: muestra -> "sEmpleado: \(xEmpleado.sEmpleado"
+print("sEmpleado: \(xEmpleado.sEmpleado)")
+// Print #11: muestra -> "tUrlCPP: \(xEmpleado.tUrlCPP"
+print("tUrlCPP: \(xEmpleado.tUrlCPP)")
+// Print #12: muestra -> "tLogo: \(xEmpleado.tLogo"
+print("tLogo: \(xEmpleado.tLogo)")
+// Print #13: muestra -> "cTipEmp: \(xEmpleado.cTipEmp"
+print("cTipEmp: \(xEmpleado.cTipEmp)")
+
+// Prints del archivo: AuthManager.swift
+// Print #1: muestra -> "✅ Datos del WKWebView eliminados"
+print("✅ Datos del WKWebView eliminados")
+// Print #2: muestra -> "AuthManager Error: \(error"
+print("AuthManager Error: \(error)")
+// Print #3: muestra -> "📥 JSON recibido del backend: \(json"
+print("📥 JSON recibido del backend: \(json)")
+
+// Prints del archivo: GPS.swift
+// Print #1: muestra -> "GPSUtils - Error al obtener ubicación: \(error.localizedDescription"
+print("GPSUtils - Error al obtener ubicación: \(error.localizedDescription)")
+
+// Prints del archivo: ManejoDeSesion.swift
+// Print #1: muestra -> "ManejoDeSesion: Aplicación en pausa"
+print("ManejoDeSesion: Aplicación en pausa")
+// Prints del archivo: SeguridadUtils.swift
+// (No se encontraron prints en este archivo)
+
+// Prints del archivo: PagSecundaria.swift
+// Print #1: muestra -> "🧪 Coordenadas disponibles: \(coordenadas)"
+print("🧪 Coordenadas disponibles: \(coordenadas)")
+// Print #2: muestra -> "🧪 WebView no disponible aún"
+print("🧪 WebView no disponible aún")
+
+// Prints del archivo: PantallaFuncional.swift
+// Print #1: muestra -> "✅ Permiso de ubicación concedido, fichando tipo: \(tipo)"
+print("✅ Permiso de ubicación concedido, fichando tipo: \(tipo)")
+// Print #2: muestra -> "⚠️ WebView no disponible"
+print("⚠️ WebView no disponible")
+// Print #3: muestra -> "🔁 Reintentando fichaje pendiente de tipo: \(tipo)"
+print("🔁 Reintentando fichaje pendiente de tipo: \(tipo)")
+
+// Prints del archivo: URLs.swift
+// Print #1: muestra -> "URL_Fichaje generada: \(url)"
+print("URL_Fichaje generada: \(url)")
+// Print #2: muestra -> "URL_Incidencia generada: \(url)"
+print("URL_Incidencia generada: \(url)")
+// Print #3: muestra -> "URL_Horarios generada: \(url)"
+print("URL_Horarios generada: \(url)")
+// Print #4: muestra -> "URL_Solicitudes generada: \(url)"
+print("URL_Solicitudes generada: \(url)")
+// Print #5: muestra -> "URL_Alertas invocada: \(finalURL)"
+print("URL_Alertas invocada: \(finalURL)")
+
+ */

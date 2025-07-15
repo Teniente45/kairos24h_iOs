@@ -27,6 +27,7 @@ struct PaginaSecundariaView: View {
         NavigationStack {
             VStack(spacing: 0) {
                 CabeceraUsuarioView(showLogoutDialog: $showLogoutDialog, navegar: $navegar)
+                    .frame(height: UIScreen.main.bounds.height * 0.04)
 
                 WebViewWrapper(
                     reloadTrigger: webViewReloadTrigger,
@@ -34,7 +35,7 @@ struct PaginaSecundariaView: View {
                     mostrandoReconectando: $mostrandoReconectando,
                     webView: $webViewReferencia
                 )
-                .frame(maxHeight: .infinity)
+                .frame(maxHeight: UIScreen.main.bounds.height * 0.85)
                 BarraNavBottom(webView: webViewReferencia, mostrarSolapa: $mostrarSolapa)
             }
             .alert(isPresented: $showLogoutDialog) {
