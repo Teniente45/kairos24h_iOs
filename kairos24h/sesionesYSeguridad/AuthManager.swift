@@ -5,8 +5,7 @@
 //  Created by Juan López on 2025.
 //
 
-// Clase encargada de gestionar la autenticación del usuario, el almacenamiento seguro de las credenciales en UserDefaults,
-// y la validación remota a través de URLSession. Utilizado tanto para login manual como autologin.
+// Clase encargada de gestionar la autenticación del usuario, el almacenamiento seguro de las credenciales en UserDefault, y la validación remota a través de URLSession. Utilizado tanto para login manual como autologin.
 
 import Foundation
 import WebKit

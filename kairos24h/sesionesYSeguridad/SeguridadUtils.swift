@@ -151,8 +151,6 @@ extension SeguridadUtils: CLLocationManagerDelegate {
             locationCompletion?(.gpsDesactivado)
             return
         }
-
-        // iOS no expone directamente si es mock, asumimos que es válida
         locationCompletion?(.ok)
     }
 

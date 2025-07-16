@@ -24,10 +24,13 @@ struct PaginaSecundariaView: View {
     @State private var xEmpleado: String = ""
 
     var body: some View {
+        // NavigationStack para gestionar la navegación dentro de la app
         NavigationStack {
             VStack(spacing: 0) {
+                // Cabecera con información del usuario y opción de logout
                 CabeceraUsuarioView(showLogoutDialog: $showLogoutDialog, navegar: $navegar)
 
+                // Contenedor del WebView que carga la URL protegida
                 WebViewWrapper(
                     reloadTrigger: webViewReloadTrigger,
                     mostrarLogin: $mostrarLogin,
@@ -35,12 +38,16 @@ struct PaginaSecundariaView: View {
                     webView: $webViewReferencia
                 )
                 .frame(maxHeight: UIScreen.main.bounds.height * 0.85)
+
+                // Barra de navegación inferior para controlar el WebView y mostrar/ocultar solapa
                 BarraNavBottom(webView: webViewReferencia, mostrarSolapa: $mostrarSolapa)
             }
+            // Alerta para confirmar cierre de sesión
             .alert(isPresented: $showLogoutDialog) {
                 Alert(
                     title: Text("¿Quieres cerrar la sesión?"),
                     primaryButton: .destructive(Text("Sí")) {
+                        // Limpia datos y navega a pantalla principal
                         AuthManager.shared.clearAllUserData()
                         navegar = true
                     },
@@ -48,6 +55,7 @@ struct PaginaSecundariaView: View {
                 )
             }
             .zIndex(0)
+            // Overlay que muestra una solapa con contenido adicional sobre el WebView
             .overlay(
                 Group {
                     if mostrarSolapa {
@@ -57,42 +65,47 @@ struct PaginaSecundariaView: View {
                             mostrarLogin: $mostrarLogin,
                             mostrarSolapa: $mostrarSolapa
                         )
-                        .zIndex(2)
+                        .zIndex(2) // Asegura que la solapa esté por encima del resto
                     }
                 }
             )
+            // Acciones al aparecer la vista
             .onAppear {
                 print("✅ PaginaSecundariaView - onAppear ejecutado")
                 xEmpleado = AuthManager.shared.getUserCredentials().xEmpleado
                 print("🧾 xEmpleado recuperado: \(xEmpleado)")
                 iniciarTimerDeSesion()
             }
+            // Acciones al desaparecer la vista
             .onDisappear {
                 timer?.invalidate()
                 print("🔄 PaginaSecundariaView - onDisappear: temporizador detenido")
             }
-            .navigationBarBackButtonHidden(true)
+            .navigationBarBackButtonHidden(true) // Oculta el botón de volver predeterminado
+            // Navegación programática a PaginaPrincipalViewController cuando navegar es true
             .navigationDestination(isPresented: $navegar) {
                 PaginaPrincipalViewController()
             }
         }
     }
 
-    // Inicia un temporizador que cierra la sesión tras el tiempo definido
+    // MARK: - Funciones de gestión de sesión
+    /// Inicia un temporizador que cierra la sesión tras el tiempo definido para evitar inactividad prolongada
     private func iniciarTimerDeSesion() {
         print("⏱️ Iniciando temporizador de sesión")
-        timer?.invalidate()
+        timer?.invalidate() // Si ya hay un temporizador activo, lo invalida
         timer = Timer.scheduledTimer(withTimeInterval: sessionTimeout, repeats: false) { _ in
             print("⚠️ Tiempo de sesión agotado, cerrando sesión")
             cerrarSesion()
         }
     }
 
-    // Cierra la sesión y limpia todos los datos de navegación
+    /// Cierra la sesión y limpia todos los datos de navegación almacenados en el WebView
     private func cerrarSesion() {
         print("🚪 Cerrando sesión y limpiando datos web")
         AuthManager.shared.clearAllUserData()
         let dataStore = WKWebsiteDataStore.default()
+        // Elimina todos los datos almacenados (cookies, cache, etc.)
         dataStore.fetchDataRecords(ofTypes: WKWebsiteDataStore.allWebsiteDataTypes()) { records in
             records.forEach { record in
                 dataStore.removeData(ofTypes: record.dataTypes, for: [record], completionHandler: {})
@@ -103,21 +116,23 @@ struct PaginaSecundariaView: View {
     }
 }
 
-// Representa un WKWebView en SwiftUI
+// Representa un WKWebView en SwiftUI y gestiona la carga de la URL y el login automático
 struct WebViewWrapper: UIViewRepresentable {
     let reloadTrigger: UUID
     @Binding var mostrarLogin: Bool
     @Binding var mostrandoReconectando: Bool
     @Binding var webView: WKWebView
 
+    /// Crea y configura el WKWebView con JavaScript habilitado y el controlador de mensajes
     func makeUIView(context: Context) -> WKWebView {
         print("⚙️ Configurando WKWebView")
         let config = WKWebViewConfiguration()
         let preferences = WKWebpagePreferences()
-        preferences.allowsContentJavaScript = true
+        preferences.allowsContentJavaScript = true // Permite ejecutar JS
         config.defaultWebpagePreferences = preferences
         config.preferences.javaScriptCanOpenWindowsAutomatically = true
 
+        // Añade el controlador para recibir mensajes JS desde la página
         let contentController = WKUserContentController()
         contentController.add(context.coordinator, name: "loginStatus")
         config.userContentController = contentController
@@ -130,10 +145,12 @@ struct WebViewWrapper: UIViewRepresentable {
         return webView
     }
 
+    /// Actualiza la vista; aquí podrías usar reloadTrigger para forzar recarga si se modifica
     func updateUIView(_ uiView: WKWebView, context: Context) {
         // Puedes usar reloadTrigger para forzar recarga
     }
 
+    /// Carga la URL principal que se quiere mostrar en el WebView
     private func cargarURLPrincipal(en webView: WKWebView) {
         print("🌐 Intentando cargar la URL principal")
         let urlString = BuildURLMovil.getIndex()
@@ -146,10 +163,12 @@ struct WebViewWrapper: UIViewRepresentable {
         }
     }
 
+    /// Crea el coordinador que actúa como delegado para WKWebView y maneja mensajes JS
     func makeCoordinator() -> Coordinator {
         Coordinator(mostrarLogin: $mostrarLogin, mostrandoReconectando: $mostrandoReconectando)
     }
 
+    // MARK: - Coordinador para manejar navegación y comunicación JS
     class Coordinator: NSObject, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler {
         var mostrarLogin: Binding<Bool>
         var mostrandoReconectando: Binding<Bool>
@@ -159,6 +178,7 @@ struct WebViewWrapper: UIViewRepresentable {
             self.mostrandoReconectando = mostrandoReconectando
         }
 
+        /// Se llama cuando el WebView termina de cargar una página
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
             print("✅ WebView terminó de cargar")
             let creds = AuthManager.shared.getUserCredentials()
@@ -176,6 +196,7 @@ struct WebViewWrapper: UIViewRepresentable {
             mostrandoReconectando.wrappedValue = true
 
             print("💻 Inyectando JavaScript para login automático")
+            // Script JS que realiza el login automático en la página cargada
             let jsScript = """
             (function() {
                 isMobile = () => true;
@@ -197,6 +218,7 @@ struct WebViewWrapper: UIViewRepresentable {
             })();
             """
 
+            // Ejecuta el JS en el WebView
             webView.evaluateJavaScript(jsScript) { result, error in
                 if let error = error {
                     print("❌ Error ejecutando JS: \(error.localizedDescription)")
@@ -205,6 +227,7 @@ struct WebViewWrapper: UIViewRepresentable {
                 }
             }
 
+            // Script que verifica si el login falló (el formulario sigue visible)
             let checkLoginJS = """
             setTimeout(function() {
                 if (document.querySelector('form') !== null) {
@@ -215,6 +238,7 @@ struct WebViewWrapper: UIViewRepresentable {
             webView.evaluateJavaScript(checkLoginJS, completionHandler: nil)
         }
 
+        /// Maneja los mensajes enviados desde el JavaScript en la página web
         func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
             if message.name == "loginStatus" {
                 if let result = message.body as? String {

@@ -8,7 +8,10 @@
 import SwiftUI
 import WebKit
 
-// Mark: Barra de usuario con nombre de usuario y boton para cerrar sesión
+// Vista que muestra la barra superior con el nombre del usuario y un botón de cierre de sesión.
+// Al pulsar el botón, aparece un diálogo de confirmación.
+
+// MARK: Barra de usuario con nombre de usuario y boton para cerrar sesión
 struct CabeceraUsuarioView: View {
     @Binding var showLogoutDialog: Bool
     @Binding var navegar: Bool
@@ -57,6 +60,8 @@ struct CabeceraUsuarioView: View {
     }
 }
 
+// Vista principal que se muestra sobre el WebView.
+// Incluye la cabecera del usuario, logo del cliente, botones de fichaje, horario actual, fichajes del día y alertas.
 struct SolapaWebView: View {
     let webView: WKWebView
     let onClose: () -> Void
@@ -70,6 +75,7 @@ struct SolapaWebView: View {
     // Con esto puedo cambiar el tamaño de los iconos de la barra de navegación
     let iconoBarraInferiorAltura: CGFloat = UIScreen.main.bounds.height * 0.04
     
+    // Devuelve una imagen redimensionada que se usará como icono en la barra inferior.
     private func BarraInferiorIcono(nombre: String) -> some View {
         Image(nombre)
             .resizable()
@@ -77,6 +83,7 @@ struct SolapaWebView: View {
             .frame(height: iconoBarraInferiorAltura)
     }
 
+    // Composición principal de la vista, organizada en un VStack que contiene la cabecera, contenido scrollable y barra de navegación inferior.
     var body: some View {
         VStack(spacing: 0) {
             CabeceraUsuarioView(showLogoutDialog: $showLogoutDialog, navegar: $navegar)
@@ -108,6 +115,7 @@ struct SolapaWebView: View {
                     MiHorarioView()
                     Spacer().frame(height: 40)
                     
+                    // Si los botones de fichaje están habilitados, se muestran los botones para fichar ENTRADA o SALIDA.
                     if AuthManager.shared.getUserCredentials().lBotonesFichajeMovil.uppercased() != "N" {
                         BotonesFichajeView(
                             webView: webView,
@@ -169,7 +177,10 @@ struct SolapaWebView: View {
     }
 }
 
-// Mark: Barra de navegación del bottom
+
+// Vista de la barra de navegación inferior que contiene botones para acceder a diferentes secciones mediante JavaScript en el WebView.
+
+// MARK: Barra de navegación del bottom
 struct BarraNavBottom: View {
     let webView: WKWebView
     @Binding var mostrarSolapa: Bool
@@ -286,6 +297,7 @@ struct MiHorarioView: View {
         }
     }
 
+    // Función que consulta al servidor el horario del usuario logueado y actualiza la vista con la información recibida.
     func cargarHorario() async {
         let formateadorServidor = DateFormatter()
         formateadorServidor.dateFormat = "yyyy-MM-dd"
@@ -428,6 +440,8 @@ struct MensajeAlerta: View {
         return formatter.string(from: Date())
     }
 
+    // Vista modal que muestra un mensaje según el tipo de resultado del fichaje (entrada, salida o error).
+    // Incluye fecha/hora y un botón para cerrar.
     var body: some View {
         ZStack {
             Color.clear
@@ -474,6 +488,10 @@ struct MensajeAlerta: View {
         }
     }
 }
+
+
+// Vista que contiene los botones para fichar ENTRADA y SALIDA.
+// Incluye lógica para verificar condiciones antes de permitir el fichaje.
 
 // MARK: Funcion que se encarga de mostrar los horarios del usuario logeado
 import Combine
@@ -596,6 +614,7 @@ struct BotonesFichajeView: View {
     }
 }
 
+// Gestor que se encarga de realizar el fichaje enviando una URL al WebView con los datos del empleado y su localización.
 struct FichajeManager {
     static let shared = FichajeManager()
 
@@ -642,6 +661,8 @@ struct FichajeVisual {
     let lcumSal: String
 }
 
+// Vista que permite al usuario consultar los fichajes realizados en un día determinado.
+// Incluye navegación por fechas, calendario y recarga desde servidor.
 struct RecuadroFichajesDia: View {
     @Binding var refreshTrigger: Int
     @State private var fechaSeleccionada: Date = Date()
@@ -836,6 +857,8 @@ struct AvisoItem: Identifiable {
     let url: String?
 }
 
+// Vista que muestra al usuario las alertas diarias recibidas desde el backend.
+// Permite expandir cada alerta y acceder a un enlace si está disponible.
 struct AlertasDiariasView: View {
     let onAbrirWebView: (String) -> Void
     let hideCuadroParaFichar: () -> Void
